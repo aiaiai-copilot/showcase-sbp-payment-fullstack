@@ -96,6 +96,40 @@ frontend/src/
 5. **Write Tests** - Including contract tests
 6. **Test Manually** - Verify in browser
 
+## Available Skills
+
+**Use these skills for specialized tasks by explicitly mentioning them:**
+
+### shadcn-ui Skill
+**When to use:** Adding or configuring shadcn/ui components
+
+**How to invoke:**
+```
+I will use the shadcn-ui skill to add a Button component
+```
+
+**Provides:**
+- Installation commands for components
+- Usage examples and patterns
+- Theming configuration
+- Troubleshooting guidance
+
+### openapi-sync Skill
+**When to use:** Setting up or updating TypeScript type generation from OpenAPI specs
+
+**How to invoke:**
+```
+I will use the openapi-sync skill to configure type generation
+```
+
+**Provides:**
+- openapi-typescript setup
+- Type generation scripts
+- CI/CD integration patterns
+- Generated type usage examples
+
+**IMPORTANT:** Always explicitly say "I will use the [skill-name] skill" to load the skill's knowledge.
+
 ## Testing Approach
 
 ### Contract Tests

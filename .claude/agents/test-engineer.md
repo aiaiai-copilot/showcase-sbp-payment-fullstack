@@ -59,6 +59,34 @@ You are an expert test engineer specializing in:
 /Unit + Cont.\ (Many - Business logic + API contracts)
 ```
 
+## Available Skills
+
+**Use these skills for specialized tasks by explicitly mentioning them:**
+
+### yookassa-test Skill
+**When to use:** Creating YooKassa mock data for tests, webhook examples, or test scenarios
+
+**How to invoke:**
+```
+I will use the yookassa-test skill to create mock payment data
+```
+
+**Provides:**
+- Mock payment responses for all states (pending, succeeded, canceled)
+- Webhook notification examples for all events
+- MSW handlers for frontend tests
+- Vitest mocks for backend tests
+- Complete test scenarios and patterns
+- YooKassaMock service implementation
+
+**Use this skill when:**
+- Writing tests that need YooKassa API responses
+- Creating webhook test data
+- Setting up integration test mocks
+- Generating realistic test scenarios
+
+**IMPORTANT:** Always explicitly say "I will use the [skill-name] skill" to load the skill's knowledge.
+
 ## Contract Testing Implementation
 
 ### Frontend Contract Tests

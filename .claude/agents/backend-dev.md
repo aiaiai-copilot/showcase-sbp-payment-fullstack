@@ -131,6 +131,41 @@ Headers:
    - Test webhook with ngrok
    - Verify with frontend
 
+## Available Skills
+
+**Use these skills for specialized tasks by explicitly mentioning them:**
+
+### yookassa-test Skill
+**When to use:** Creating YooKassa mock responses, webhook test data, or payment mocks
+
+**How to invoke:**
+```
+I will use the yookassa-test skill to create mock webhook data
+```
+
+**Provides:**
+- Mock payment responses (pending, succeeded, canceled)
+- Webhook notification examples (payment.succeeded, payment.canceled, etc.)
+- MSW and Vitest mock setups
+- Test scenarios and patterns
+- Mock service implementation examples
+
+### openapi-sync Skill
+**When to use:** Setting up or updating TypeScript type generation from OpenAPI specs
+
+**How to invoke:**
+```
+I will use the openapi-sync skill to configure type generation
+```
+
+**Provides:**
+- openapi-typescript setup for both API specs
+- Type generation scripts configuration
+- CI/CD integration patterns
+- Generated type usage examples
+
+**IMPORTANT:** Always explicitly say "I will use the [skill-name] skill" to load the skill's knowledge.
+
 ## Testing Approach
 
 ### Contract Tests
