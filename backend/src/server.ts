@@ -1,6 +1,10 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { config } from './config.js';
+import { PaymentStorage } from './types/payment.js';
+import { YooKassaService } from './services/yookassa.js';
+import { paymentRoutes } from './routes/payments.js';
+import { webhookRoutes } from './routes/webhooks.js';
 
 const fastify = Fastify({
   logger: {
@@ -13,6 +17,10 @@ await fastify.register(cors, {
   origin: config.frontendUrl,
   credentials: true,
 });
+
+// Initialize services
+const storage = new PaymentStorage();
+const yookassaService = new YooKassaService();
 
 // Health check endpoint
 fastify.get('/health', async () => {
@@ -27,6 +35,12 @@ fastify.get('/', async () => {
     environment: config.nodeEnv,
   };
 });
+
+// Register payment routes
+await paymentRoutes(fastify, storage, yookassaService);
+
+// Register webhook routes
+await webhookRoutes(fastify, storage);
 
 // Start server
 const start = async () => {
