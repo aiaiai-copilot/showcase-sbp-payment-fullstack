@@ -11,11 +11,13 @@ Execute the following steps:
 3. Create a test payment via API: `POST /api/payments` with amount
 4. Display the payment ID and confirmation URL
 5. **Say: "I will use the yookassa-test skill to simulate webhook notification"**
+   - Log usage: `echo "$(date -Iseconds): yookassa-test invoked by /test-payment (amount: $ARGUMENTS)" >> .claude/skill-usage.log`
 6. Use the skill's webhook examples to create appropriate webhook payload
 7. Send webhook to backend: `POST /api/webhooks/yookassa`
 8. Poll payment status every 2 seconds for up to 30 seconds: `GET /api/payments/{id}`
 9. Report the final payment status (succeeded/canceled/pending)
 10. Verify the flow matches the OpenAPI specification
+11. Report: "✅ yookassa-test skill was used for webhook simulation"
 
 This command tests the end-to-end payment flow without requiring manual intervention.
 

@@ -130,6 +130,27 @@ I will use the openapi-sync skill to configure type generation
 
 **IMPORTANT:** Always explicitly say "I will use the [skill-name] skill" to load the skill's knowledge.
 
+## Skill Usage Self-Reporting
+
+**Whenever you use a skill, you MUST:**
+
+1. **State explicitly:** "I will use the [skill-name] skill for [task]"
+2. **Log usage:** Run `echo "$(date -Iseconds): [skill-name] used by frontend-dev for [task]" >> .claude/skill-usage.log`
+3. **Confirm at end:** "✅ Used [skill-name] skill for [task]"
+
+**Example:**
+```
+I will use the shadcn-ui skill to add a Button component.
+
+[runs: echo "$(date -Iseconds): shadcn-ui used by frontend-dev for Button component" >> .claude/skill-usage.log]
+
+[follows skill procedures...]
+
+✅ Used shadcn-ui skill for Button component setup.
+```
+
+This ensures accountability and tracking of skill usage.
+
 ## Testing Approach
 
 ### Contract Tests

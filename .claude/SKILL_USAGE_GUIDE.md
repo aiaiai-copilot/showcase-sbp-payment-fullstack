@@ -190,5 +190,158 @@ Use the shadcn-ui skill to explain how to add a Button component
 
 ---
 
-**Updated:** After fixing the /dev-setup command to properly invoke skills
+## 🔍 Skill Usage Tracking System
+
+To ensure skills are actually being used (not bypassed), we've implemented a **complete tracking system**.
+
+### How It Works
+
+**1. Automatic Logging in Commands**
+
+Commands that use skills automatically log invocations:
+```bash
+echo "$(date -Iseconds): shadcn-ui invoked by /dev-setup (frontend)" >> .claude/skill-usage.log
+```
+
+**2. Self-Reporting in Subagents**
+
+Subagents are instructed to:
+- State explicitly: "I will use the [skill] skill"
+- Log usage: `echo "$(date -Iseconds): [skill] used by [subagent] for [task]" >> .claude/skill-usage.log`
+- Confirm: "✅ Used [skill] skill for [task]"
+
+**3. Audit with /skills-report**
+
+View skill usage statistics:
+```
+/skills-report                # Full report
+/skills-report shadcn-ui      # Filter by skill
+/skills-report 2025-10-30     # Filter by date
+```
+
+### What Gets Tracked
+
+**Log Format:**
+```
+2025-10-30T15:23:45+00:00: shadcn-ui invoked by /dev-setup (frontend)
+2025-10-30T15:24:12+00:00: yookassa-test used by test-engineer for mock data
+```
+
+**Tracked Information:**
+- **When:** ISO 8601 timestamp
+- **What:** Skill name
+- **How:** "invoked by" (commands) or "used by" (subagents)
+- **Who:** Source (command or subagent name)
+- **Why:** Context (task description)
+
+### Verification Methods
+
+**Method 1: Check Log Directly**
+```bash
+cat .claude/skill-usage.log
+tail -20 .claude/skill-usage.log
+grep "shadcn-ui" .claude/skill-usage.log
+```
+
+**Method 2: Use /skills-report**
+```
+/skills-report
+```
+
+Shows:
+- Total invocations
+- Usage by skill
+- Usage by source (commands vs subagents)
+- Recent entries
+- Insights and patterns
+
+**Method 3: Watch Claude's Response**
+
+Look for:
+- ✅ "I will use the [skill] skill..." statement
+- ✅ Skill-specific content in response
+- ✅ Confirmation: "✅ Used [skill] skill"
+- ❌ Missing these = skill was bypassed
+
+### Benefits
+
+**Before Tracking:**
+- ❌ No visibility into skill usage
+- ❌ Can't verify skills were used
+- ❌ Skills could be bypassed silently
+
+**With Tracking:**
+- ✅ Full audit trail of skill usage
+- ✅ Can verify skills are being used
+- ✅ Identify unused skills
+- ✅ Measure skill effectiveness
+- ✅ Accountability for skill invocation
+
+### Example Workflow
+
+**1. Run command that uses skills:**
+```
+/dev-setup frontend
+```
+
+**2. Claude's response includes:**
+```
+I will use the shadcn-ui skill to set up shadcn/ui components.
+
+[Logs: 2025-10-30T15:23:45+00:00: shadcn-ui invoked by /dev-setup (frontend)]
+
+[Follows skill procedures...]
+
+✅ Used shadcn-ui skill for component setup.
+```
+
+**3. Check tracking:**
+```
+/skills-report
+```
+
+**4. Verify log entry:**
+```bash
+grep "shadcn-ui" .claude/skill-usage.log
+# Output: 2025-10-30T15:23:45+00:00: shadcn-ui invoked by /dev-setup (frontend)
+```
+
+### Troubleshooting
+
+**Skill used but not logged?**
+- Check `.claude/skill-usage.log` exists
+- Verify command/subagent includes logging step
+- Ensure echo command has write permissions
+
+**Log file doesn't exist?**
+- Created automatically on first skill use
+- Or create manually: `touch .claude/skill-usage.log`
+
+**Can't see recent entries?**
+- Use: `tail -20 .claude/skill-usage.log`
+- Or: `/skills-report`
+
+### Maintenance
+
+**Clearing Old Logs:**
+```bash
+# Backup old log
+cp .claude/skill-usage.log .claude/skill-usage.log.backup
+
+# Start fresh
+echo "# Skill Usage Log - Started $(date)" > .claude/skill-usage.log
+```
+
+**Analyzing Patterns:**
+```bash
+# Most used skill
+cat .claude/skill-usage.log | grep -o "shadcn-ui\|openapi-sync\|yookassa-test" | sort | uniq -c | sort -rn
+
+# Usage over time
+grep "2025-10-30" .claude/skill-usage.log | wc -l
+```
+
+---
+
+**Updated:** After implementing complete skill tracking system
 **Author:** Claude Code Configuration

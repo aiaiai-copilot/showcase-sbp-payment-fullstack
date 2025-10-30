@@ -166,6 +166,27 @@ I will use the openapi-sync skill to configure type generation
 
 **IMPORTANT:** Always explicitly say "I will use the [skill-name] skill" to load the skill's knowledge.
 
+## Skill Usage Self-Reporting
+
+**Whenever you use a skill, you MUST:**
+
+1. **State explicitly:** "I will use the [skill-name] skill for [task]"
+2. **Log usage:** Run `echo "$(date -Iseconds): [skill-name] used by backend-dev for [task]" >> .claude/skill-usage.log`
+3. **Confirm at end:** "✅ Used [skill-name] skill for [task]"
+
+**Example:**
+```
+I will use the yookassa-test skill to create mock webhook data.
+
+[runs: echo "$(date -Iseconds): yookassa-test used by backend-dev for webhook mocks" >> .claude/skill-usage.log]
+
+[follows skill procedures...]
+
+✅ Used yookassa-test skill for webhook mock data.
+```
+
+This ensures accountability and tracking of skill usage.
+
 ## Testing Approach
 
 ### Contract Tests

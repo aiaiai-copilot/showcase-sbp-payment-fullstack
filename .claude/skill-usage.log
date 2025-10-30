@@ -1,0 +1,14 @@
+# Skill Usage Tracking Log
+#
+# This file tracks when skills are invoked by commands and subagents.
+# Format: ISO8601_TIMESTAMP: skill-name invoked/used by source (context)
+#
+# Purpose: Ensure skills are actually being used, not bypassed.
+# View report: /skills-report
+#
+# Skills available:
+# - shadcn-ui: Component installation and configuration
+# - openapi-sync: TypeScript type generation from OpenAPI specs
+# - yookassa-test: Mock data and webhook test scenarios
+#
+# Log entries appear below:
