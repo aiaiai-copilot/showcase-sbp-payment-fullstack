@@ -1,0 +1,265 @@
+openapi: 3.0.1
+info:
+  title: Payment Demo API
+  description: |
+    REST API for YooKassa integration demo application.
+    Provides payment creation and status retrieval functionality.
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+tags:
+  - name: payments
+    description: Payment operations
+
+paths:
+  /api/payments:
+    post:
+      tags:
+        - payments
+      summary: Create new payment
+      description: |
+        Creates a new payment in YooKassa and returns data for displaying SBP QR code.
+        Payment is created in test mode.
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  format: decimal
+                  minimum: 1
+                  maximum: 100000
+                  example: 100.00
+                  description: Payment amount in rubles
+                description:
+                  type: string
+                  maxLength: 128
+                  example: "Test payment"
+                  description: Payment description (optional)
+      responses:
+        '201':
+          description: Payment successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - status
+                  - amount
+                  - confirmation
+                  - created_at
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "2c0b3e86-000f-5000-8000-18db351245c7"
+                    description: Unique payment identifier
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - waiting_for_capture
+                      - succeeded
+                      - canceled
+                    example: "pending"
+                    description: Current payment status
+                  amount:
+                    type: object
+                    required:
+                      - value
+                      - currency
+                    properties:
+                      value:
+                        type: string
+                        pattern: '^\d+\.\d{2}$'
+                        example: "100.00"
+                        description: Payment amount
+                      currency:
+                        type: string
+                        enum:
+                          - RUB
+                        example: "RUB"
+                        description: Payment currency
+                  confirmation:
+                    type: object
+                    required:
+                      - type
+                      - confirmation_url
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - qr
+                        example: "qr"
+                        description: Payment confirmation type
+                      confirmation_url:
+                        type: string
+                        format: uri
+                        example: "https://yoomoney.ru/checkout/payments/v2/contract?orderId=2c0b3e86-000f-5000-8000-18db351245c7"
+                        description: URL for generating SBP QR code
+                  description:
+                    type: string
+                    example: "Test payment"
+                    description: Payment description
+                  test:
+                    type: boolean
+                    example: true
+                    description: Test payment flag
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2025-10-30T10:30:00.000Z"
+                    description: Payment creation date and time
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: "invalid_request"
+                  message: "Payment amount must be greater than 0"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: "internal_error"
+                  message: "Failed to create payment"
+
+  /api/payments/{id}:
+    get:
+      tags:
+        - payments
+      summary: Get payment status
+      description: Returns current payment information by its identifier
+      operationId: getPaymentStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique payment identifier
+          schema:
+            type: string
+            format: uuid
+          example: "2c0b3e86-000f-5000-8000-18db351245c7"
+      responses:
+        '200':
+          description: Payment information retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - status
+                  - amount
+                  - created_at
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    example: "2c0b3e86-000f-5000-8000-18db351245c7"
+                    description: Unique payment identifier
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - waiting_for_capture
+                      - succeeded
+                      - canceled
+                    example: "succeeded"
+                    description: Current payment status
+                  amount:
+                    type: object
+                    required:
+                      - value
+                      - currency
+                    properties:
+                      value:
+                        type: string
+                        pattern: '^\d+\.\d{2}$'
+                        example: "100.00"
+                        description: Payment amount
+                      currency:
+                        type: string
+                        enum:
+                          - RUB
+                        example: "RUB"
+                        description: Payment currency
+                  description:
+                    type: string
+                    example: "Test payment"
+                    description: Payment description
+                  test:
+                    type: boolean
+                    example: true
+                    description: Test payment flag
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2025-10-30T10:30:00.000Z"
+                    description: Payment creation date and time
+                  paid_at:
+                    type: string
+                    format: date-time
+                    example: "2025-10-30T10:32:15.000Z"
+                    description: Payment date and time (if status is succeeded)
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: "not_found"
+                  message: "Payment with specified ID not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: "internal_error"
+                  message: "Failed to retrieve payment status"
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Error code
+              example: "invalid_request"
+            message:
+              type: string
+              description: Error description
+              example: "Invalid request data"
