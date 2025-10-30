@@ -16,7 +16,12 @@
       {
         "name": "api-first-reminder",
         "description": "Remind about API-First approach when implementing APIs",
-        "command": "if echo \"$PROMPT\" | grep -qi \"api\\|endpoint\\|route\"; then\n  echo \"Reminder: Follow API-First approach - ensure OpenAPI spec exists before implementation.\"\nfi"
+        "command": "if echo \"$PROMPT\" | grep -qi \"api\\|endpoint\\|route\"; then\n  echo \"⚠️  Reminder: Follow API-First approach - ensure OpenAPI spec exists before implementation.\"\nfi"
+      },
+      {
+        "name": "subagent-enforcement",
+        "description": "Enforce using subagents for implementation tasks",
+        "command": "if echo \"$PROMPT\" | grep -qi \"implement\\|build.*frontend\\|create.*component\\|add.*ui\\|frontend.*feature\"; then\n  echo \"🤖 REQUIRED: Use Task tool with 'frontend-dev' subagent for frontend implementation\"\n  echo \"   Example: Task(subagent_type='frontend-dev', prompt='implement payment form component')\"\nelif echo \"$PROMPT\" | grep -qi \"implement.*backend\\|build.*api\\|create.*endpoint\\|add.*route\\|backend.*feature\"; then\n  echo \"🤖 REQUIRED: Use Task tool with 'backend-dev' subagent for backend implementation\"\n  echo \"   Example: Task(subagent_type='backend-dev', prompt='implement payment endpoint')\"\nelif echo \"$PROMPT\" | grep -qi \"test.*contract\\|validate.*api\\|check.*spec\"; then\n  echo \"🤖 REQUIRED: Use Task tool with 'api-validator' or 'test-engineer' subagent\"\n  echo \"   Example: Task(subagent_type='test-engineer', prompt='write contract tests')\"\nfi"
       },
       {
         "name": "skill-usage-reminder",

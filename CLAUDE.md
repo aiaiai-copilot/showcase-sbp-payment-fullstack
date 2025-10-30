@@ -58,12 +58,33 @@ showcase-sbp-payment-fullstack/
 
 ## Development Workflow
 
+**🚨 CRITICAL: Always use subagents for implementation!**
+
+See `.claude/WORKFLOW.md` for detailed workflow documentation.
+
+### Using Subagents (REQUIRED)
+
+**Never implement features directly. Always use the Task tool with the appropriate subagent:**
+
+- **Frontend implementation** → Use `frontend-dev` subagent
+- **Backend implementation** → Use `backend-dev` subagent
+- **API validation** → Use `api-validator` subagent
+- **Testing** → Use `test-engineer` subagent
+
+**Example:**
+```javascript
+Task(
+  subagent_type: "frontend-dev",
+  prompt: "Implement payment form component with shadcn/ui"
+)
+```
+
 ### Recommended Pattern: API-First TDD
 
 1. **Define Contract** - Update/review OpenAPI spec
-2. **Write Contract Tests** - Validate against spec
-3. **Implement Feature** - Make tests pass
-4. **Validate** - Ensure contract compliance
+2. **Write Contract Tests** - Use `test-engineer` subagent
+3. **Implement Feature** - Use appropriate subagent (frontend-dev/backend-dev)
+4. **Validate** - Use `api-validator` subagent for contract compliance
 5. **Commit** - With clear conventional commit message
 
 ### Branch Strategy
