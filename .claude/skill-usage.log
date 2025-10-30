@@ -14,3 +14,4 @@
 # Log entries appear below:
 2025-10-30T23:15:15+00:00: shadcn-ui invoked by /dev-setup (frontend)
 2025-10-30T23:16:45+00:00: openapi-sync invoked by /dev-setup (frontend)
+2025-10-30T23:32:06+00:00: openapi-sync invoked by /dev-setup (backend)
