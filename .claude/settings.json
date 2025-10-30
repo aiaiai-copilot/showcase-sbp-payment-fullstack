@@ -17,6 +17,11 @@
         "name": "api-first-reminder",
         "description": "Remind about API-First approach when implementing APIs",
         "command": "if echo \"$PROMPT\" | grep -qi \"api\\|endpoint\\|route\"; then\n  echo \"Reminder: Follow API-First approach - ensure OpenAPI spec exists before implementation.\"\nfi"
+      },
+      {
+        "name": "skill-usage-reminder",
+        "description": "Remind about available skills for common tasks",
+        "command": "if echo \"$PROMPT\" | grep -qi \"shadcn\\|component\\|ui\"; then\n  echo \"💡 Skill available: Use 'shadcn-ui' skill for component setup\"\nelif echo \"$PROMPT\" | grep -qi \"type.*generat\\|openapi.*type\"; then\n  echo \"💡 Skill available: Use 'openapi-sync' skill for type generation\"\nelif echo \"$PROMPT\" | grep -qi \"yookassa\\|mock\\|test.*payment\"; then\n  echo \"💡 Skill available: Use 'yookassa-test' skill for mocking\"\nfi"
       }
     ]
   },

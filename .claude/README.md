@@ -82,7 +82,11 @@ Subagents are specialized AI assistants for specific tasks. Claude automatically
 
 ## 🎯 Skills
 
-Skills are reusable capabilities that Claude can invoke when needed.
+Skills are reusable knowledge repositories that must be **explicitly loaded** by mentioning their name.
+
+**⚠️ CRITICAL:** Skills don't auto-execute. You must say "I will use the [skill-name] skill" to load its knowledge.
+
+See `.claude/SKILL_USAGE_GUIDE.md` for detailed explanation.
 
 ### shadcn-ui
 **Purpose:** Add and configure shadcn/ui components
@@ -93,7 +97,11 @@ Skills are reusable capabilities that Claude can invoke when needed.
 - Includes theming and customization guidance
 - Troubleshooting tips
 
-**Invoke with:** "Add a shadcn/ui button component" or "How do I use shadcn/ui forms?"
+**How to invoke:** Say "I will use the shadcn-ui skill to [task]"
+
+**Examples:**
+- "I will use the shadcn-ui skill to add a button component"
+- "Use the shadcn-ui skill to explain form setup"
 
 ### openapi-sync
 **Purpose:** Generate TypeScript types from OpenAPI specifications
@@ -104,7 +112,11 @@ Skills are reusable capabilities that Claude can invoke when needed.
 - Shows usage patterns for generated types
 - Includes CI/CD integration examples
 
-**Invoke with:** "Generate types from OpenAPI specs" or "Sync API types"
+**How to invoke:** Say "I will use the openapi-sync skill to [task]"
+
+**Examples:**
+- "I will use the openapi-sync skill to set up type generation"
+- "Use the openapi-sync skill to configure automatic type sync"
 
 ### yookassa-test
 **Purpose:** Create YooKassa mock responses and test data
@@ -115,7 +127,11 @@ Skills are reusable capabilities that Claude can invoke when needed.
 - Includes MSW and Vitest mock setups
 - Shows test scenarios
 
-**Invoke with:** "Create YooKassa mock data" or "How do I test YooKassa integration?"
+**How to invoke:** Say "I will use the yookassa-test skill to [task]"
+
+**Examples:**
+- "I will use the yookassa-test skill to create mock webhook data"
+- "Use the yookassa-test skill to set up payment mocks"
 
 ## ⚡ Slash Commands
 
