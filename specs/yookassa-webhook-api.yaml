@@ -1,0 +1,322 @@
+openapi: 3.0.1
+info:
+  title: YooKassa Webhook API
+  description: |
+    YooKassa webhook notification specification.
+    Describes the format of incoming HTTP notifications about payment events.
+    
+    YooKassa Documentation: https://yookassa.ru/developers/using-api/webhooks
+  version: 1.0.0
+  contact:
+    name: YooKassa Support
+    url: https://yookassa.ru/developers
+
+servers:
+  - url: https://api.yookassa.ru
+    description: YooKassa Production
+
+tags:
+  - name: webhooks
+    description: Webhook notifications from YooKassa
+
+paths:
+  /api/webhooks/yookassa:
+    post:
+      tags:
+        - webhooks
+      summary: Receive notification from YooKassa
+      description: |
+        Endpoint for receiving webhook notifications from YooKassa about payment events.
+        
+        YooKassa sends notifications when payment status changes.
+        Backend must respond with HTTP 200 to confirm receipt of notification.
+        
+        If endpoint is unavailable, YooKassa will retry sending notification 7 times
+        with intervals: 10, 42, 84, 168, 672, 5376, 86016 seconds.
+        
+        Notifications come from IP addresses:
+        - 185.71.76.0/27
+        - 185.71.77.0/27
+        - 77.75.153.0/25
+        - 77.75.154.128/25
+      operationId: receiveYooKassaWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - event
+                - object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - notification
+                  example: "notification"
+                  description: Message type (always notification)
+                event:
+                  type: string
+                  enum:
+                    - payment.succeeded
+                    - payment.canceled
+                    - payment.waiting_for_capture
+                  example: "payment.succeeded"
+                  description: |
+                    Event that occurred:
+                    - payment.succeeded - payment successfully completed
+                    - payment.canceled - payment canceled
+                    - payment.waiting_for_capture - payment awaiting confirmation
+                object:
+                  type: object
+                  required:
+                    - id
+                    - status
+                    - amount
+                    - created_at
+                    - test
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "2c0b3e86-000f-5000-8000-18db351245c7"
+                      description: Unique payment identifier in YooKassa
+                    status:
+                      type: string
+                      enum:
+                        - pending
+                        - waiting_for_capture
+                        - succeeded
+                        - canceled
+                      example: "succeeded"
+                      description: Current payment status
+                    paid:
+                      type: boolean
+                      example: true
+                      description: Payment paid flag
+                    amount:
+                      type: object
+                      required:
+                        - value
+                        - currency
+                      properties:
+                        value:
+                          type: string
+                          pattern: '^\d+\.\d{2}$'
+                          example: "100.00"
+                          description: Payment amount
+                        currency:
+                          type: string
+                          enum:
+                            - RUB
+                          example: "RUB"
+                          description: Payment currency (ISO-4217)
+                    authorization_details:
+                      type: object
+                      description: Payment authorization data
+                      properties:
+                        rrn:
+                          type: string
+                          example: "10000000000"
+                          description: Retrieval Reference Number
+                        auth_code:
+                          type: string
+                          example: "000000"
+                          description: Authorization code
+                        three_d_secure:
+                          type: object
+                          properties:
+                            applied:
+                              type: boolean
+                              example: true
+                              description: Whether 3-D Secure was applied
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-10-30T10:30:00.000Z"
+                      description: Payment creation date and time (ISO 8601)
+                    captured_at:
+                      type: string
+                      format: date-time
+                      example: "2025-10-30T10:32:15.000Z"
+                      description: Payment confirmation date and time (for succeeded)
+                    expires_at:
+                      type: string
+                      format: date-time
+                      example: "2025-10-30T11:30:00.000Z"
+                      description: Payment expiration time
+                    description:
+                      type: string
+                      maxLength: 128
+                      example: "Test payment"
+                      description: Transaction description
+                    metadata:
+                      type: object
+                      additionalProperties: true
+                      description: Additional payment data
+                    recipient:
+                      type: object
+                      properties:
+                        account_id:
+                          type: string
+                          example: "100500"
+                          description: Shop identifier in YooKassa
+                        gateway_id:
+                          type: string
+                          example: "100700"
+                          description: Gateway identifier
+                    payment_method:
+                      type: object
+                      required:
+                        - type
+                        - id
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - sbp
+                            - bank_card
+                            - yoo_money
+                            - qiwi
+                            - sberbank
+                          example: "sbp"
+                          description: Payment method type
+                        id:
+                          type: string
+                          example: "2c0b3e86-000f-5000-8000-1d1b379523c8"
+                          description: Payment method identifier
+                        saved:
+                          type: boolean
+                          example: false
+                          description: Saved payment method flag
+                        title:
+                          type: string
+                          example: "SBP"
+                          description: Payment method name
+                    refundable:
+                      type: boolean
+                      example: true
+                      description: Payment refund availability
+                    test:
+                      type: boolean
+                      example: true
+                      description: Test payment flag
+                    income_amount:
+                      type: object
+                      properties:
+                        value:
+                          type: string
+                          example: "98.50"
+                          description: Amount to be credited minus commission
+                        currency:
+                          type: string
+                          example: "RUB"
+                          description: Currency
+            examples:
+              payment_succeeded:
+                summary: Payment successfully completed
+                value:
+                  type: "notification"
+                  event: "payment.succeeded"
+                  object:
+                    id: "2c0b3e86-000f-5000-8000-18db351245c7"
+                    status: "succeeded"
+                    paid: true
+                    amount:
+                      value: "100.00"
+                      currency: "RUB"
+                    created_at: "2025-10-30T10:30:00.000Z"
+                    captured_at: "2025-10-30T10:32:15.000Z"
+                    description: "Test payment"
+                    test: true
+                    refundable: true
+                    payment_method:
+                      type: "sbp"
+                      id: "2c0b3e86-000f-5000-8000-1d1b379523c8"
+                      saved: false
+                      title: "SBP"
+                    recipient:
+                      account_id: "100500"
+                      gateway_id: "100700"
+              
+              payment_canceled:
+                summary: Payment canceled
+                value:
+                  type: "notification"
+                  event: "payment.canceled"
+                  object:
+                    id: "2c0b3e86-000f-5000-8000-18db351245c7"
+                    status: "canceled"
+                    paid: false
+                    amount:
+                      value: "100.00"
+                      currency: "RUB"
+                    created_at: "2025-10-30T10:30:00.000Z"
+                    description: "Test payment"
+                    test: true
+                    payment_method:
+                      type: "sbp"
+                      id: "2c0b3e86-000f-5000-8000-1d1b379523c8"
+                      saved: false
+                      title: "SBP"
+              
+              payment_waiting_for_capture:
+                summary: Payment awaiting confirmation
+                value:
+                  type: "notification"
+                  event: "payment.waiting_for_capture"
+                  object:
+                    id: "2c0b3e86-000f-5000-8000-18db351245c7"
+                    status: "waiting_for_capture"
+                    paid: true
+                    amount:
+                      value: "100.00"
+                      currency: "RUB"
+                    authorization_details:
+                      rrn: "10000000000"
+                      auth_code: "000000"
+                      three_d_secure:
+                        applied: true
+                    created_at: "2025-10-30T10:30:00.000Z"
+                    expires_at: "2025-10-30T11:30:00.000Z"
+                    description: "Test payment"
+                    test: true
+                    payment_method:
+                      type: "sbp"
+                      id: "2c0b3e86-000f-5000-8000-1d1b379523c8"
+                      saved: false
+                      title: "SBP"
+      responses:
+        '200':
+          description: |
+            Notification successfully received and processed.
+            Backend MUST return HTTP 200 to confirm receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+              example:
+                success: true
+        '400':
+          description: Invalid notification format
+        '500':
+          description: Notification processing error on recipient side
+
+components:
+  securitySchemes:
+    IPWhitelist:
+      type: apiKey
+      description: |
+        Sender IP address verification.
+        Notifications only come from YooKassa IP addresses.
+      name: X-Forwarded-For
+      in: header
+
+security:
+  - IPWhitelist: []

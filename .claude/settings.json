@@ -1,0 +1,55 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "name": "format-code",
+        "description": "Auto-format code files after editing",
+        "command": "if [[ \"$TOOL\" == \"Edit\" || \"$TOOL\" == \"Write\" ]]; then\n  FILE=\"$1\"\n  if [[ \"$FILE\" == *.ts || \"$FILE\" == *.tsx || \"$FILE\" == *.js || \"$FILE\" == *.jsx ]]; then\n    if command -v prettier &> /dev/null; then\n      prettier --write \"$FILE\" 2>/dev/null || true\n    fi\n  fi\nfi"
+      },
+      {
+        "name": "validate-openapi-changes",
+        "description": "Validate OpenAPI specs after changes",
+        "command": "if [[ \"$TOOL\" == \"Edit\" || \"$TOOL\" == \"Write\" ]]; then\n  FILE=\"$1\"\n  if [[ \"$FILE\" == *specs/*.yaml ]]; then\n    if command -v npx &> /dev/null; then\n      echo \"Validating OpenAPI spec: $FILE\"\n      npx @redocly/cli lint \"$FILE\" || echo \"Warning: OpenAPI validation failed\"\n    fi\n  fi\nfi"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "name": "api-first-reminder",
+        "description": "Remind about API-First approach when implementing APIs",
+        "command": "if echo \"$PROMPT\" | grep -qi \"api\\|endpoint\\|route\"; then\n  echo \"⚠️  Reminder: Follow API-First approach - ensure OpenAPI spec exists before implementation.\"\nfi"
+      },
+      {
+        "name": "subagent-enforcement",
+        "description": "Enforce using subagents for implementation tasks",
+        "command": "if echo \"$PROMPT\" | grep -qi \"implement\\|build.*frontend\\|create.*component\\|add.*ui\\|frontend.*feature\"; then\n  echo \"🤖 REQUIRED: Use Task tool with 'frontend-dev' subagent for frontend implementation\"\n  echo \"   Example: Task(subagent_type='frontend-dev', prompt='implement payment form component')\"\nelif echo \"$PROMPT\" | grep -qi \"implement.*backend\\|build.*api\\|create.*endpoint\\|add.*route\\|backend.*feature\"; then\n  echo \"🤖 REQUIRED: Use Task tool with 'backend-dev' subagent for backend implementation\"\n  echo \"   Example: Task(subagent_type='backend-dev', prompt='implement payment endpoint')\"\nelif echo \"$PROMPT\" | grep -qi \"test.*contract\\|validate.*api\\|check.*spec\"; then\n  echo \"🤖 REQUIRED: Use Task tool with 'api-validator' or 'test-engineer' subagent\"\n  echo \"   Example: Task(subagent_type='test-engineer', prompt='write contract tests')\"\nfi"
+      },
+      {
+        "name": "skill-usage-reminder",
+        "description": "Remind about available skills for common tasks",
+        "command": "if echo \"$PROMPT\" | grep -qi \"shadcn\\|component\\|ui\"; then\n  echo \"💡 Skill available: Use 'shadcn-ui' skill for component setup\"\nelif echo \"$PROMPT\" | grep -qi \"type.*generat\\|openapi.*type\"; then\n  echo \"💡 Skill available: Use 'openapi-sync' skill for type generation\"\nelif echo \"$PROMPT\" | grep -qi \"yookassa\\|mock\\|test.*payment\"; then\n  echo \"💡 Skill available: Use 'yookassa-test' skill for mocking\"\nfi"
+      }
+    ]
+  },
+  "allowedTools": [
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Bash",
+    "WebFetch",
+    "WebSearch",
+    "TodoWrite"
+  ],
+  "allowedDomains": [
+    "yookassa.ru",
+    "docs.yookassa.ru",
+    "github.com",
+    "stackoverflow.com",
+    "developer.mozilla.org",
+    "react.dev",
+    "fastify.dev",
+    "vitest.dev",
+    "ui.shadcn.com"
+  ]
+}
