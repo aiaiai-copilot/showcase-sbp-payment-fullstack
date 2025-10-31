@@ -11,7 +11,7 @@
     "test": "npm test --prefix backend && npm test --prefix frontend",
     "test:backend": "npm test --prefix backend",
     "test:frontend": "npm test --prefix frontend",
-    "test:contract": "npm test --prefix backend -- --grep contract && npm test --prefix frontend -- --grep contract",
+    "test:contract": "npm test --prefix backend -- -t contract && npm test --prefix frontend -- -t contract",
     "build": "npm run build --prefix frontend",
     "type-check": "npm run type-check --prefix backend && npm run type-check --prefix frontend",
     "clean": "rm -rf backend/node_modules backend/dist frontend/node_modules frontend/dist"
