@@ -31,36 +31,36 @@ cat CLAUDE.md
 ls .claude/
 ```
 
-### 3. Set Up Development Environment
+### 3. Install Dependencies
 
-Use the built-in slash command:
+**⚠️ IMPORTANT:** This is a monorepo. Install dependencies for each workspace:
 
+**Option A: Using root scripts (Recommended)**
+```bash
+npm install              # Installs root dependencies (concurrently)
+npm run install:all      # Installs frontend + backend dependencies
+```
+
+**Option B: Manual installation**
+```bash
+# Backend dependencies
+cd backend
+npm install
+
+# Frontend dependencies
+cd ../frontend
+npm install
+
+# Return to root
+cd ..
+```
+
+**Option C: Using Claude Code slash command**
 ```bash
 claude
-```
-
-Then in Claude Code:
-```
-/dev-setup
-```
-
-Or manually:
-
-```bash
-# Frontend setup
-cd frontend
-npm create vite@latest . -- --template react-ts
-npm install
-npm install @tanstack/react-query react-hook-form zod @hookform/resolvers/zod
-npx shadcn-ui@latest init
-npm install -D openapi-typescript
-
-# Backend setup
-cd ../backend
-npm init -y
-npm install fastify @fastify/cors dotenv
-npm install -D typescript tsx @types/node vitest
-npm install -D openapi-typescript jest-openapi
+# Then in Claude Code:
+/dev-setup frontend
+/dev-setup backend
 ```
 
 ### 4. Configure Environment Variables
