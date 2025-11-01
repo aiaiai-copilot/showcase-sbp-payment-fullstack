@@ -114,10 +114,18 @@ export async function paymentRoutes(
         });
       }
 
+      // Fetch fresh status from YooKassa
+      const yookassaPayment = await yookassaService.getPayment(payment.yookassaId);
+
+      // Update local storage with fresh status
+      if (yookassaPayment.status !== payment.status) {
+        storage.updateStatus(payment.id, yookassaPayment.status);
+      }
+
       // Build response matching OpenAPI spec
       const response: GetPaymentResponse = {
         id: payment.id,
-        status: payment.status,
+        status: yookassaPayment.status,
         amount: {
           value: payment.amount.toFixed(2),
           currency: 'RUB',
@@ -127,8 +135,8 @@ export async function paymentRoutes(
       };
 
       // Add paid_at if payment succeeded
-      if (payment.status === 'succeeded') {
-        response.paid_at = payment.updatedAt;
+      if (yookassaPayment.status === 'succeeded') {
+        response.paid_at = (yookassaPayment as any).captured_at || new Date().toISOString();
       }
 
       return reply.status(200).send(response);
