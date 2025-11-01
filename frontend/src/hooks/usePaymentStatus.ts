@@ -11,8 +11,9 @@ export function usePaymentStatus(paymentId: string | null, enabled: boolean = tr
       return apiClient.getPaymentStatus(paymentId);
     },
     enabled: enabled && !!paymentId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Stop polling if payment is in final state
+      const data = query.state.data;
       if (data?.status === 'succeeded' || data?.status === 'canceled') {
         return false;
       }
