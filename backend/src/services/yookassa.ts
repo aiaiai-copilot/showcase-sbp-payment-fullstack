@@ -71,7 +71,8 @@ export class YooKassaService {
         currency: 'RUB',
       },
       confirmation: {
-        type: 'qr',
+        type: 'redirect',
+        return_url: config.frontendUrl,
       },
       description: description || 'Payment via demo app',
       capture: true,
