@@ -60,7 +60,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl text-center">Pay via SBP</CardTitle>
-        <CardDescription className="text-base">
+        <CardDescription className="text-base text-center">
           Enter payment details to generate a QR code for SBP payment
         </CardDescription>
       </CardHeader>
