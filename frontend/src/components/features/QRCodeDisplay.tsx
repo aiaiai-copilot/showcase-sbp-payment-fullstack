@@ -16,7 +16,7 @@ export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDi
 
   return (
     <Card className="w-full max-w-md mx-auto border-t-4 border-t-green-600">
-      <CardHeader className="space-y-2">
+      <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl">SBP Payment Demo</CardTitle>
         <CardDescription className="text-base">
           Use your banking app with SBP support to scan this QR code
