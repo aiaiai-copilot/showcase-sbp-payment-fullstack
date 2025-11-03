@@ -37,6 +37,6 @@ logs/
 !.claude/skill-usage.log
 
 # Temporary files
-tmp/
+#tmp/
 temp/
 *.tmp
