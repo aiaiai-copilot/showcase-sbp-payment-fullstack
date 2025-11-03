@@ -15,65 +15,68 @@ export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDi
   )}`;
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Scan QR Code to Pay</CardTitle>
-        <CardDescription>
+    <Card className="w-full max-w-md mx-auto border-t-4 border-t-green-600">
+      <CardHeader className="space-y-2">
+        <CardTitle className="text-2xl">Scan QR Code to Pay</CardTitle>
+        <CardDescription className="text-base">
           Use your banking app with SBP support to scan this QR code
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-center">
+      <CardContent className="space-y-6">
+        <div className="flex justify-center p-4 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-xl">
           <img
             src={qrCodeUrl}
             alt="Payment QR Code"
-            className="w-64 h-64 border border-neutral-200 rounded-lg"
+            className="w-64 h-64 border-4 border-white shadow-lg rounded-lg"
           />
         </div>
 
-        <Alert>
-          <AlertTitle>Payment Details</AlertTitle>
+        <Alert className="border-2 border-green-200 bg-green-50">
+          <AlertTitle className="text-green-900 font-semibold">Payment Details</AlertTitle>
           <AlertDescription>
-            <div className="space-y-1 mt-2">
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Amount:</span>
-                <span className="font-semibold">
+            <div className="space-y-2 mt-3">
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-700 font-medium">Amount:</span>
+                <span className="font-bold text-green-700 text-lg">
                   {payment.amount.value} {payment.amount.currency}
                 </span>
               </div>
               {payment.description && (
-                <div className="flex justify-between">
-                  <span className="text-neutral-600">Description:</span>
-                  <span className="font-semibold">{payment.description}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-neutral-700 font-medium">Description:</span>
+                  <span className="font-semibold text-neutral-900">{payment.description}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Status:</span>
-                <span className="font-semibold capitalize">{payment.status}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-700 font-medium">Status:</span>
+                <span className="font-semibold text-neutral-900 capitalize">{payment.status}</span>
               </div>
             </div>
           </AlertDescription>
         </Alert>
 
-        <div className="text-sm text-neutral-600 text-center">
-          <p>1. Open your banking app</p>
-          <p>2. Find the "Pay by QR" or "SBP" option</p>
-          <p>3. Scan the QR code above</p>
-          <p>4. Confirm the payment</p>
+        <div className="text-sm text-neutral-700 bg-neutral-50 p-4 rounded-lg border-2 border-neutral-200">
+          <p className="font-semibold mb-2 text-neutral-900">How to pay:</p>
+          <ol className="space-y-1.5 list-decimal list-inside">
+            <li>Open your banking app</li>
+            <li>Find the "Pay by QR" or "SBP" option</li>
+            <li>Scan the QR code above</li>
+            <li>Confirm the payment</li>
+          </ol>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className="flex gap-3 pt-2">
         <Button
           variant="outline"
           onClick={onCancel}
-          className="flex-1"
+          className="flex-1 h-11 border-2 hover:bg-neutral-50"
           aria-label="Cancel payment and return to form"
         >
           Cancel
         </Button>
         <Button
           onClick={onProceedToStatus}
-          className="flex-1 bg-green-600 hover:bg-green-700"
+          className="flex-1 h-11 bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg transition-all duration-200"
           aria-label="Check payment status"
         >
           Check Status

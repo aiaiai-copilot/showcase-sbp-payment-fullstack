@@ -30,19 +30,24 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
-      <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded font-bold text-sm shadow-lg z-50">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 text-black">
+      {/* TEST MODE badge */}
+      <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl z-50 border-2 border-green-700">
         TEST MODE
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">YooKassa Payment Demo</h1>
-          <p className="text-neutral-600">
+      <div className="container mx-auto px-4 py-12">
+        {/* Header */}
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+            YooKassa Payment Demo
+          </h1>
+          <p className="text-neutral-600 text-lg">
             Secure SBP payment integration with QR code
           </p>
         </header>
 
+        {/* Main content area */}
         <main className="max-w-2xl mx-auto">
           {flowState === 'form' && (
             <PaymentForm onSuccess={handlePaymentCreated} />
@@ -64,7 +69,8 @@ function App() {
           )}
         </main>
 
-        <footer className="text-center mt-8 text-sm text-neutral-500">
+        {/* Footer */}
+        <footer className="text-center mt-12 text-sm text-neutral-500">
           <p>This is a demo application. No real payments will be processed.</p>
         </footer>
       </div>
