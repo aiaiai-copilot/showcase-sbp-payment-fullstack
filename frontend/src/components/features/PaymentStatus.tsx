@@ -82,7 +82,7 @@ export function PaymentStatus({ paymentId, onCreateNew }: PaymentStatusProps) {
 
   return (
     <Card className={`w-full max-w-md mx-auto border-t-4 ${getStatusColor()}`}>
-      <CardHeader className="space-y-2">
+      <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl">Payment Status</CardTitle>
         <CardDescription className="text-base">
           {isFinalState
