@@ -16,8 +16,8 @@ export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDi
 
   return (
     <Card className="w-full max-w-md mx-auto border-t-4 border-t-green-600">
-      <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl">Scan QR Code to Pay</CardTitle>
+      <CardHeader className="space-y-2 text-center">
+        <CardTitle className="text-2xl">SBP Payment Demo</CardTitle>
         <CardDescription className="text-base">
           Use your banking app with SBP support to scan this QR code
         </CardDescription>
@@ -41,12 +41,6 @@ export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDi
                   {payment.amount.value} {payment.amount.currency}
                 </span>
               </div>
-              {payment.description && (
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-700 font-medium">Description:</span>
-                  <span className="font-semibold text-neutral-900">{payment.description}</span>
-                </div>
-              )}
               <div className="flex justify-between items-center">
                 <span className="text-neutral-700 font-medium">Status:</span>
                 <span className="font-semibold text-neutral-900 capitalize">{payment.status}</span>
@@ -54,16 +48,6 @@ export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDi
             </div>
           </AlertDescription>
         </Alert>
-
-        <div className="text-sm text-neutral-700 bg-neutral-50 p-4 rounded-lg border-2 border-neutral-200">
-          <p className="font-semibold mb-2 text-neutral-900">How to pay:</p>
-          <ol className="space-y-1.5 list-decimal list-inside">
-            <li>Open your banking app</li>
-            <li>Find the "Pay by QR" or "SBP" option</li>
-            <li>Scan the QR code above</li>
-            <li>Confirm the payment</li>
-          </ol>
-        </div>
       </CardContent>
       <CardFooter className="flex gap-3 pt-2">
         <Button

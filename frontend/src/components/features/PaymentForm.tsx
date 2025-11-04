@@ -34,6 +34,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
@@ -41,6 +42,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
       description: '',
     },
   });
+
+  const amount = watch('amount');
 
   const onSubmit = async (data: PaymentFormData) => {
     try {
@@ -54,10 +57,10 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto border-t-4 border-t-green-600">
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl">Create Payment</CardTitle>
-        <CardDescription className="text-base">
+        <CardTitle className="text-2xl text-center">Pay via SBP</CardTitle>
+        <CardDescription className="text-base text-center">
           Enter payment details to generate a QR code for SBP payment
         </CardDescription>
       </CardHeader>
@@ -122,7 +125,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             disabled={createPayment.isPending}
             aria-busy={createPayment.isPending}
           >
-            {createPayment.isPending ? 'Creating...' : 'Create Payment'}
+            {createPayment.isPending ? 'Creating...' : `Pay ${amount || 100} ₽`}
           </Button>
         </form>
       </CardContent>
