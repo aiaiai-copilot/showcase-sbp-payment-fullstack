@@ -43,7 +43,7 @@
 ### Необходимое ПО
 
 ```bash
-# Node.js 22.x
+# Node.js 22.18.0
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
@@ -60,7 +60,7 @@ sudo npm install -g pm2
 ### Проверка установки
 
 ```bash
-node --version  # должно быть v22.x.x
+node --version  # должно быть v22.18.0
 npm --version   # должно быть 10.x.x
 nginx -v        # любая версия
 ```
