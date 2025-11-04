@@ -114,6 +114,16 @@ export async function paymentRoutes(
         });
       }
 
+      // Ensure payment has YooKassa ID
+      if (!payment.yookassaId) {
+        return reply.status(500).send({
+          error: {
+            code: 'internal_error',
+            message: 'Payment missing YooKassa ID',
+          },
+        });
+      }
+
       // Fetch fresh status from YooKassa
       const yookassaPayment = await yookassaService.getPayment(payment.yookassaId);
 
