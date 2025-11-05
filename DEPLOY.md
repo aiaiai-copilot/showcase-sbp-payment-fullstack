@@ -42,15 +42,15 @@
 
 ### Необходимое ПО
 
-**На сервере должно быть установлено:**
+**На сервере должно быть установлено (из-под root):**
 
 ```bash
 # Node.js 22.x LTS
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt-get install -y nodejs
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+apt-get install -y nodejs
 
 # PM2 (опционально, для управления процессами)
-sudo npm install -g pm2
+npm install -g pm2
 ```
 
 **Примечание:** Nginx должен быть уже установлен на VPS.
@@ -123,46 +123,49 @@ LOG_LEVEL=info
 
 ### Загрузка на сервер
 
+**ВАЖНО:** Все команды на сервере выполняются из-под root (после `ssh root@your-server`).
+
 **1. Создайте структуру директорий на сервере:**
 
 ```bash
-sudo mkdir -p /var/www/sbp-payment/frontend
-sudo mkdir -p /var/www/sbp-payment/backend
+mkdir -p /var/www/sbp-payment/frontend
+mkdir -p /var/www/sbp-payment/backend
 ```
 
 **2. Загрузите файлы с локальной машины (выполняйте локально):**
 
 ```bash
 # Frontend - только собранная статика
-scp -r frontend/dist/ user@your-server:/tmp/frontend-dist/
+scp -r frontend/dist/ root@your-server:/var/www/sbp-payment/frontend/
 
 # Backend - собранный код
-scp -r backend/dist/ user@your-server:/tmp/backend-dist/
+scp -r backend/dist/ root@your-server:/var/www/sbp-payment/backend/
 
 # Backend - package.json и .env
-scp backend/package.json user@your-server:/tmp/
-scp backend/package-lock.json user@your-server:/tmp/
-scp backend/.env user@your-server:/tmp/
+scp backend/package.json root@your-server:/var/www/sbp-payment/backend/
+scp backend/package-lock.json root@your-server:/var/www/sbp-payment/backend/
+scp backend/.env root@your-server:/var/www/sbp-payment/backend/
 ```
 
-**3. На сервере переместите файлы и установите зависимости:**
+**3. На сервере установите зависимости:**
 
 ```bash
-# Переместить frontend
-sudo mv /tmp/frontend-dist /var/www/sbp-payment/frontend/dist
-
-# Настроить backend
-sudo mv /tmp/backend-dist /var/www/sbp-payment/backend/dist
-sudo mv /tmp/package.json /var/www/sbp-payment/backend/
-sudo mv /tmp/package-lock.json /var/www/sbp-payment/backend/
-sudo mv /tmp/.env /var/www/sbp-payment/backend/
-
 # Установить только production зависимости backend
 cd /var/www/sbp-payment/backend
-sudo npm ci --omit=dev
+npm ci --omit=dev
 
 # Вернуться
 cd /var/www/sbp-payment
+```
+
+**4. Настройте права доступа для Nginx:**
+
+```bash
+# Установить владельца www-data для всех файлов
+chown -R www-data:www-data /var/www/sbp-payment
+
+# Ограничить доступ к .env файлу
+chmod 600 /var/www/sbp-payment/backend/.env
 ```
 
 **Итоговая структура на сервере:**
@@ -184,6 +187,7 @@ cd /var/www/sbp-payment
 - ✅ Нет исходного кода на production
 - ✅ Нет dev-зависимостей
 - ✅ Быстрая загрузка и обновление
+- ✅ Прямая загрузка файлов из-под root без промежуточных перемещений
 
 ---
 
@@ -192,7 +196,7 @@ cd /var/www/sbp-payment
 ### 1. Создание конфигурационного файла
 
 ```bash
-sudo nano /etc/nginx/sites-available/sbp-payment
+nano /etc/nginx/sites-available/sbp-payment
 ```
 
 ### 2. Базовая конфигурация (HTTP)
@@ -252,29 +256,29 @@ server {
 
 ```bash
 # Создать символическую ссылку
-sudo ln -s /etc/nginx/sites-available/sbp-payment /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/sbp-payment /etc/nginx/sites-enabled/
 
 # Удалить дефолтный сайт (опционально)
-sudo rm /etc/nginx/sites-enabled/default
+rm /etc/nginx/sites-enabled/default
 
 # Проверить конфигурацию
-sudo nginx -t
+nginx -t
 
 # Перезагрузить Nginx
-sudo systemctl reload nginx
+systemctl reload nginx
 ```
 
 ### 4. SSL/HTTPS с Let's Encrypt (рекомендуется)
 
 ```bash
 # Установить Certbot
-sudo apt-get install -y certbot python3-certbot-nginx
+apt-get install -y certbot python3-certbot-nginx
 
 # Получить сертификат
-sudo certbot --nginx -d ваш-домен.com -d www.ваш-домен.com
+certbot --nginx -d ваш-домен.com -d www.ваш-домен.com
 
 # Автоматическое продление (уже настроено)
-sudo certbot renew --dry-run
+certbot renew --dry-run
 ```
 
 После установки SSL, Nginx автоматически обновит конфигурацию.
@@ -286,7 +290,7 @@ sudo certbot renew --dry-run
 ### 1. Создание service файла
 
 ```bash
-sudo nano /etc/systemd/system/sbp-backend.service
+nano /etc/systemd/system/sbp-backend.service
 ```
 
 ### 2. Содержимое файла
@@ -328,44 +332,46 @@ WantedBy=multi-user.target
 
 ### 3. Настройка прав доступа
 
+**ВАЖНО:** Права уже должны быть настроены после шага "Загрузка на сервер", но проверьте еще раз:
+
 ```bash
 # Сделать www-data владельцем директорий
-sudo chown -R www-data:www-data /var/www/sbp-payment
+chown -R www-data:www-data /var/www/sbp-payment
 
 # Права на .env (только чтение владельцем)
-sudo chmod 600 /var/www/sbp-payment/backend/.env
+chmod 600 /var/www/sbp-payment/backend/.env
 ```
 
 ### 4. Запуск службы
 
 ```bash
 # Перезагрузить systemd
-sudo systemctl daemon-reload
+systemctl daemon-reload
 
 # Включить автозапуск
-sudo systemctl enable sbp-backend
+systemctl enable sbp-backend
 
 # Запустить службу
-sudo systemctl start sbp-backend
+systemctl start sbp-backend
 
 # Проверить статус
-sudo systemctl status sbp-backend
+systemctl status sbp-backend
 ```
 
 ### 5. Управление службой
 
 ```bash
 # Остановить
-sudo systemctl stop sbp-backend
+systemctl stop sbp-backend
 
 # Перезапустить
-sudo systemctl restart sbp-backend
+systemctl restart sbp-backend
 
 # Просмотр логов
-sudo journalctl -u sbp-backend -f
+journalctl -u sbp-backend -f
 
 # Последние 100 строк логов
-sudo journalctl -u sbp-backend -n 100
+journalctl -u sbp-backend -n 100
 ```
 
 ---
@@ -415,7 +421,7 @@ pm2 delete sbp-backend
 
 ```bash
 # Проверить запущен ли процесс
-sudo systemctl status sbp-backend
+systemctl status sbp-backend
 # или
 pm2 status
 
@@ -424,7 +430,7 @@ curl http://localhost:3000/health
 # Ожидаемый ответ: {"status":"ok","timestamp":"..."}
 
 # Проверить логи
-sudo journalctl -u sbp-backend -n 50
+journalctl -u sbp-backend -n 50
 ```
 
 ### 2. Проверка Frontend
@@ -435,7 +441,7 @@ ls -la /var/www/sbp-payment/frontend/dist/
 # Должны быть: index.html, assets/, и др.
 
 # Проверить Nginx
-sudo nginx -t
+nginx -t
 curl http://localhost/
 ```
 
@@ -467,17 +473,17 @@ curl -X POST http://ваш-домен.com/api/payments \
 
 ```bash
 # Backend логи (systemd)
-sudo journalctl -u sbp-backend -f
+journalctl -u sbp-backend -f
 
 # Backend логи (PM2)
 pm2 logs sbp-backend
 
 # Nginx логи
-sudo tail -f /var/log/nginx/sbp-payment-access.log
-sudo tail -f /var/log/nginx/sbp-payment-error.log
+tail -f /var/log/nginx/sbp-payment-access.log
+tail -f /var/log/nginx/sbp-payment-error.log
 
 # Системные логи
-sudo journalctl -xe
+journalctl -xe
 ```
 
 ### Мониторинг ресурсов
@@ -518,41 +524,42 @@ npm run build
 cd ..
 
 # Загрузить обновленные файлы
-scp -r frontend/dist/ user@your-server:/tmp/frontend-dist/
-scp -r backend/dist/ user@your-server:/tmp/backend-dist/
-scp backend/package.json user@your-server:/tmp/
-scp backend/package-lock.json user@your-server:/tmp/
+scp -r frontend/dist/ root@your-server:/var/www/sbp-payment/frontend/dist-new
+scp -r backend/dist/ root@your-server:/var/www/sbp-payment/backend/dist-new
+scp backend/package.json root@your-server:/var/www/sbp-payment/backend/
+scp backend/package-lock.json root@your-server:/var/www/sbp-payment/backend/
 ```
 
 **На сервере:**
 
 ```bash
 # Остановить backend
-sudo systemctl stop sbp-backend
+systemctl stop sbp-backend
 # или
 pm2 stop sbp-backend
 
-# Удалить старые файлы
-sudo rm -rf /var/www/sbp-payment/frontend/dist
-sudo rm -rf /var/www/sbp-payment/backend/dist
+# Заменить frontend
+rm -rf /var/www/sbp-payment/frontend/dist
+mv /var/www/sbp-payment/frontend/dist-new /var/www/sbp-payment/frontend/dist
 
-# Переместить новые файлы
-sudo mv /tmp/frontend-dist /var/www/sbp-payment/frontend/dist
-sudo mv /tmp/backend-dist /var/www/sbp-payment/backend/dist
-sudo mv /tmp/package.json /var/www/sbp-payment/backend/
-sudo mv /tmp/package-lock.json /var/www/sbp-payment/backend/
+# Заменить backend
+rm -rf /var/www/sbp-payment/backend/dist
+mv /var/www/sbp-payment/backend/dist-new /var/www/sbp-payment/backend/dist
 
 # Обновить зависимости backend (если изменились)
 cd /var/www/sbp-payment/backend
-sudo npm ci --omit=dev
+npm ci --omit=dev
+
+# Настроить права доступа
+chown -R www-data:www-data /var/www/sbp-payment
 
 # Запустить backend
-sudo systemctl start sbp-backend
+systemctl start sbp-backend
 # или
 pm2 restart sbp-backend
 
 # Перезагрузить Nginx (если нужно)
-sudo systemctl reload nginx
+systemctl reload nginx
 ```
 
 ---
@@ -563,36 +570,36 @@ sudo systemctl reload nginx
 
 1. **Файрвол (UFW):**
 ```bash
-sudo ufw allow 22/tcp    # SSH
-sudo ufw allow 80/tcp    # HTTP
-sudo ufw allow 443/tcp   # HTTPS
-sudo ufw enable
+ufw allow 22/tcp    # SSH
+ufw allow 80/tcp    # HTTP
+ufw allow 443/tcp   # HTTPS
+ufw enable
 ```
 
 2. **Закрыть порт 3000:**
 Backend должен быть доступен только через Nginx, не напрямую:
 ```bash
 # Порт 3000 НЕ должен быть открыт публично
-sudo ufw status
+ufw status
 ```
 
 3. **Регулярные обновления:**
 ```bash
-sudo apt-get update
-sudo apt-get upgrade -y
+apt-get update
+apt-get upgrade -y
 ```
 
 4. **Backup .env файла:**
 ```bash
 # Создать резервную копию
-sudo cp /var/www/sbp-payment/backend/.env ~/backup-env
+cp /var/www/sbp-payment/backend/.env /root/backup-env
 ```
 
 5. **Ограничение прав:**
 ```bash
 # Убедиться что файлы принадлежат www-data
-sudo chown -R www-data:www-data /var/www/sbp-payment
-sudo chmod 600 /var/www/sbp-payment/backend/.env
+chown -R www-data:www-data /var/www/sbp-payment
+chmod 600 /var/www/sbp-payment/backend/.env
 ```
 
 ---
@@ -603,33 +610,34 @@ sudo chmod 600 /var/www/sbp-payment/backend/.env
 
 ```bash
 # Проверить логи
-sudo journalctl -u sbp-backend -n 100
+journalctl -u sbp-backend -n 100
 
 # Типичные проблемы:
 # 1. Порт 3000 занят
-sudo lsof -i :3000
+lsof -i :3000
 # Убить процесс если нужно
-sudo kill -9 <PID>
+kill -9 <PID>
 
 # 2. Отсутствует .env
 ls -la /var/www/sbp-payment/backend/.env
 
 # 3. Неправильные права
-sudo chown www-data:www-data /var/www/sbp-payment/backend/.env
+chown www-data:www-data /var/www/sbp-payment/backend/.env
+chmod 600 /var/www/sbp-payment/backend/.env
 ```
 
 ### Frontend не загружается
 
 ```bash
 # Проверить Nginx
-sudo nginx -t
-sudo systemctl status nginx
+nginx -t
+systemctl status nginx
 
 # Проверить файлы
 ls -la /var/www/sbp-payment/frontend/dist/
 
 # Проверить логи Nginx
-sudo tail -f /var/log/nginx/sbp-payment-error.log
+tail -f /var/log/nginx/sbp-payment-error.log
 ```
 
 ### API не отвечает
@@ -648,7 +656,7 @@ curl http://ваш-домен.com/api/payments
 
 ```bash
 # Проверить .env
-sudo cat /var/www/sbp-payment/backend/.env
+cat /var/www/sbp-payment/backend/.env
 
 # Проверить ключ начинается с test_
 # Проверить shop_id корректный
