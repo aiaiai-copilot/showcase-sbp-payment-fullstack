@@ -36,8 +36,8 @@
 
 - **ОС:** Ubuntu 20.04 LTS или новее
 - **Процессор:** 1 CPU (минимум)
-- **RAM:** 1 GB (минимум)
-- **Диск:** 2 GB свободного места
+- **RAM:** 512 MB (минимум, рекомендуется 1 GB)
+- **Диск:** 100 MB свободного места (~10 MB для приложения + буфер)
 - **Сеть:** Публичный IP-адрес
 
 ### Необходимое ПО
@@ -76,48 +76,48 @@ git clone https://github.com/aiaiai-copilot/showcase-sbp-payment-fullstack.git
 cd showcase-sbp-payment-fullstack
 ```
 
-**2. Установите зависимости и соберите frontend:**
+**2. Настройте base path для frontend:**
+
+Frontend будет развернут в поддиректории `/showcase/payments/sbp/`, поэтому нужно настроить Vite:
 
 ```bash
 cd frontend
+```
+
+Откройте `vite.config.ts` и добавьте параметр `base`:
+
+```typescript
+export default defineConfig({
+  base: '/showcase/payments/sbp/',  // <-- Добавьте эту строку
+  plugins: [react()],
+  // ... остальные настройки
+});
+```
+
+Сохраните файл.
+
+**3. Установите зависимости и соберите frontend:**
+
+```bash
 npm install
 npm run build
 # Создается директория frontend/dist/ (~5 MB)
 cd ..
 ```
 
-**3. Установите зависимости и соберите backend:**
+**Важно:** Все ссылки и assets в собранном приложении будут использовать префикс `/showcase/payments/sbp/`.
+
+**4. Установите зависимости и соберите backend:**
 
 ```bash
 cd backend
 npm install
 npm run build
-# Создается директория backend/dist/
+# Создается директория backend/dist/ с забандленным server.js (~2-3 MB)
 cd ..
 ```
 
-**4. Создайте файл backend/.env локально:**
-
-```env
-# Конфигурация сервера
-PORT=3000
-NODE_ENV=production
-
-# YooKassa API (ТЕСТОВЫЙ РЕЖИМ)
-# Получите учетные данные: https://yookassa.ru/ -> Интеграция -> API
-YOOKASSA_SHOP_ID=ваш_shop_id
-YOOKASSA_SECRET_KEY=test_ваш_секретный_ключ
-
-# CORS
-FRONTEND_URL=https://ваш-домен.com
-
-# Логирование
-LOG_LEVEL=info
-```
-
-**ВАЖНО:**
-- Используйте только тестовые ключи (начинаются с `test_`)
-- Никогда не используйте продакшн-ключи в демо-приложении
+**Примечание:** Файл `.env` с секретными ключами НЕ создаётся локально. Он будет создан напрямую на сервере для безопасности.
 
 ---
 
@@ -128,108 +128,132 @@ LOG_LEVEL=info
 **1. Создайте структуру директорий на сервере:**
 
 ```bash
-mkdir -p /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend
-mkdir -p /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
+mkdir -p /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend
+mkdir -p /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend
 ```
 
 **2. Загрузите файлы с локальной машины (выполняйте локально):**
 
 ```bash
 # Frontend - только собранная статика
-scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/
+scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/
 
-# Backend - собранный код
-scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
-
-# Backend - package.json и .env
-scp backend/package.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
-scp backend/package-lock.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
-scp backend/.env root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
+# Backend - собранный и забандленный код (один файл!)
+scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/
 ```
 
-**3. На сервере установите зависимости:**
+**Важно:** Благодаря бандлингу esbuild, backend/dist/server.js содержит весь код вместе с зависимостями. package.json и node_modules на сервере НЕ нужны!
+
+**3. Создайте файл .env на сервере (НЕ передавайте через scp!):**
+
+**На сервере:**
 
 ```bash
-# Установить только production зависимости backend
-cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
-npm ci --omit=dev
-
-# Вернуться
-cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment
+nano /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 ```
+
+Вставьте конфигурацию:
+
+```env
+# Конфигурация сервера
+PORT=3000
+NODE_ENV=production
+
+# YooKassa API (ТЕСТОВЫЙ РЕЖИМ)
+YOOKASSA_SHOP_ID=ваш_shop_id
+YOOKASSA_SECRET_KEY=test_ваш_секретный_ключ
+
+# CORS
+FRONTEND_URL=https://alexanderlapygin.com
+
+# Логирование
+LOG_LEVEL=info
+```
+
+Сохраните файл (`Ctrl+O`, `Enter`, `Ctrl+X`).
+
+**Почему НЕ через scp:**
+- ✅ Секреты не передаются по сети
+- ✅ Не попадают в историю команд shell
+- ✅ Можно использовать разные ключи для разных серверов
 
 **4. Настройте права доступа для Nginx:**
 
 ```bash
 # Установить владельца www-data для всех файлов
-chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/payments/sbp
 
 # Ограничить доступ к .env файлу
-chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 ```
 
 **Итоговая структура на сервере:**
 
 ```
-/var/www/alexanderlapygin.com/html/showcase/sbp-payment/
+/var/www/alexanderlapygin.com/html/showcase/payments/sbp/
 ├── backend/
-│   ├── dist/              # Собранный backend код
-│   ├── node_modules/      # Только production зависимости (~150 MB)
-│   ├── package.json
-│   ├── package-lock.json
+│   ├── dist/
+│   │   ├── server.js      # Забандленный backend код со всеми зависимостями (~2-3 MB)
+│   │   └── server.js.map  # Source map для отладки
 │   └── .env               # Конфигурация
 └── frontend/
     └── dist/              # Собранная статика (~5 MB)
 ```
 
 **Преимущества этого подхода:**
-- ✅ Минимальный размер на сервере (~160 MB вместо ~500 MB)
+- ✅ Минимальный размер на сервере (~10 MB вместо ~160 MB)
 - ✅ Нет исходного кода на production
-- ✅ Нет dev-зависимостей
-- ✅ Быстрая загрузка и обновление
+- ✅ Нет node_modules (~150 MB экономии)
+- ✅ Нет package.json и package-lock.json
+- ✅ НЕ нужен npm на production сервере
+- ✅ Быстрая загрузка (один файл ~2MB вместо тысяч файлов)
+- ✅ Быстрый старт приложения (меньше I/O операций)
 - ✅ Прямая загрузка файлов из-под root без промежуточных перемещений
 
 ---
 
 ## Конфигурация Nginx
 
-### 1. Создание конфигурационного файла
+**ВАЖНО:** Приложение разворачивается на существующем домене `alexanderlapygin.com` в поддиректории `/showcase/payments/sbp/`. Не нужно создавать новый server block!
 
-```bash
-nano /etc/nginx/sites-available/sbp-payment
+### 1. Структура URL
+
+После развертывания приложение будет доступно по адресам:
+- **Frontend:** `https://alexanderlapygin.com/showcase/payments/sbp/`
+- **Backend API:** `https://alexanderlapygin.com/api/`
+
+Frontend уже обслуживается существующей конфигурацией Nginx:
+```nginx
+root /var/www/alexanderlapygin.com/html;
+location / {
+    try_files $uri $uri/ /index.html;
+}
 ```
 
-### 2. Базовая конфигурация (HTTP)
+Файлы frontend находятся в `/var/www/alexanderlapygin.com/html/showcase/payments/sbp/` и автоматически доступны через Nginx.
+
+### 2. Добавление проксирования Backend API
+
+Откройте существующий конфигурационный файл:
+
+```bash
+nano /etc/nginx/sites-enabled/alexanderlapygin.com.conf
+```
+
+Найдите блок `server` со строкой `listen 443 ssl;` и **добавьте** следующий location **перед** существующим `location /`:
 
 ```nginx
 server {
-    listen 80;
-    server_name ваш-домен.com www.ваш-домен.com;
+    server_name alexanderlapygin.com www.alexanderlapygin.com;
 
-    # Логи
-    access_log /var/log/nginx/sbp-payment-access.log;
-    error_log /var/log/nginx/sbp-payment-error.log;
+    # ... существующие настройки ...
 
-    # Frontend - статические файлы
-    location / {
-        root /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist;
-        try_files $uri $uri/ /index.html;
-
-        # Кэширование статики
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
-    }
-
-    # Backend API - проксирование
-    location /api/ {
+    # Backend API для SBP Payment Demo
+    location ^~ /api/ {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
 
         # Заголовки
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -241,47 +265,39 @@ server {
         proxy_read_timeout 60s;
 
         # Отключить кэширование API
-        proxy_cache_bypass $http_upgrade;
-        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
     }
 
-    # Безопасность
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    # ... остальные существующие location ...
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
 }
 ```
 
-### 3. Включение сайта
+**Примечание:** Используйте `^~` модификатор для location `/api/` чтобы он имел приоритет над `location /`.
+
+### 3. Применение изменений
 
 ```bash
-# Создать символическую ссылку
-ln -s /etc/nginx/sites-available/sbp-payment /etc/nginx/sites-enabled/
-
-# Удалить дефолтный сайт (опционально)
-rm /etc/nginx/sites-enabled/default
-
-# Проверить конфигурацию
+# Проверить конфигурацию на ошибки
 nginx -t
 
-# Перезагрузить Nginx
+# Если всё ОК, перезагрузить Nginx
 systemctl reload nginx
 ```
 
-### 4. SSL/HTTPS с Let's Encrypt (рекомендуется)
+### 4. Проверка конфигурации
 
 ```bash
-# Установить Certbot
-apt-get install -y certbot python3-certbot-nginx
+# Проверить что backend API доступен
+curl http://localhost:3000/health
 
-# Получить сертификат
-certbot --nginx -d ваш-домен.com -d www.ваш-домен.com
-
-# Автоматическое продление (уже настроено)
-certbot renew --dry-run
+# Проверить что проксирование работает
+curl https://alexanderlapygin.com/api/health
 ```
 
-После установки SSL, Nginx автоматически обновит конфигурацию.
+**SSL уже настроен** через Let's Encrypt для домена alexanderlapygin.com, дополнительная настройка не требуется.
 
 ---
 
@@ -305,7 +321,7 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
+WorkingDirectory=/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend
 
 # Команда запуска
 ExecStart=/usr/bin/node dist/server.js
@@ -316,7 +332,7 @@ RestartSec=10
 
 # Переменные окружения
 Environment=NODE_ENV=production
-EnvironmentFile=/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+EnvironmentFile=/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 
 # Логи
 StandardOutput=journal
@@ -330,19 +346,9 @@ LimitNOFILE=4096
 WantedBy=multi-user.target
 ```
 
-### 3. Настройка прав доступа
+### 3. Запуск службы
 
-**ВАЖНО:** Права уже должны быть настроены после шага "Загрузка на сервер", но проверьте еще раз:
-
-```bash
-# Сделать www-data владельцем директорий
-chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
-
-# Права на .env (только чтение владельцем)
-chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
-```
-
-### 4. Запуск службы
+**Важно:** Убедитесь что права доступа настроены (шаг 4 из "Загрузка на сервер").
 
 ```bash
 # Перезагрузить systemd
@@ -358,7 +364,7 @@ systemctl start sbp-backend
 systemctl status sbp-backend
 ```
 
-### 5. Управление службой
+### 4. Управление службой
 
 ```bash
 # Остановить
@@ -381,7 +387,7 @@ journalctl -u sbp-backend -n 100
 ### 1. Установка и запуск
 
 ```bash
-cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
+cd /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend
 
 # Запуск приложения
 pm2 start dist/server.js --name sbp-backend
@@ -437,7 +443,7 @@ journalctl -u sbp-backend -n 50
 
 ```bash
 # Проверить файлы собраны
-ls -la /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist/
+ls -la /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist/
 # Должны быть: index.html, assets/, и др.
 
 # Проверить Nginx
@@ -524,10 +530,8 @@ npm run build
 cd ..
 
 # Загрузить обновленные файлы
-scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist-new
-scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist-new
-scp backend/package.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
-scp backend/package-lock.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
+scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist-new
+scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist-new
 ```
 
 **На сервере:**
@@ -539,19 +543,15 @@ systemctl stop sbp-backend
 pm2 stop sbp-backend
 
 # Заменить frontend
-rm -rf /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist
-mv /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist-new /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist
+rm -rf /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist
+mv /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist-new /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist
 
 # Заменить backend
-rm -rf /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist
-mv /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist-new /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist
-
-# Обновить зависимости backend (если изменились)
-cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
-npm ci --omit=dev
+rm -rf /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist
+mv /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist-new /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist
 
 # Настроить права доступа
-chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/payments/sbp
 
 # Запустить backend
 systemctl start sbp-backend
@@ -592,14 +592,14 @@ apt-get upgrade -y
 4. **Backup .env файла:**
 ```bash
 # Создать резервную копию
-cp /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env /root/backup-env
+cp /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env /root/backup-env
 ```
 
 5. **Ограничение прав:**
 ```bash
 # Убедиться что файлы принадлежат www-data
-chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
-chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/payments/sbp
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 ```
 
 ---
@@ -619,11 +619,11 @@ lsof -i :3000
 kill -9 <PID>
 
 # 2. Отсутствует .env
-ls -la /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+ls -la /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 
 # 3. Неправильные права
-chown www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
-chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+chown www-data:www-data /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 ```
 
 ### Frontend не загружается
@@ -634,7 +634,7 @@ nginx -t
 systemctl status nginx
 
 # Проверить файлы
-ls -la /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist/
+ls -la /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist/
 
 # Проверить логи Nginx
 tail -f /var/log/nginx/sbp-payment-error.log
@@ -656,7 +656,7 @@ curl http://ваш-домен.com/api/payments
 
 ```bash
 # Проверить .env
-cat /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+cat /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 
 # Проверить ключ начинается с test_
 # Проверить shop_id корректный
@@ -698,24 +698,26 @@ curl https://api.yookassa.ru/v3
 
 **Локально:**
 - [ ] Клонирован репозиторий
+- [ ] Настроен Vite base path (`/showcase/payments/sbp/`)
 - [ ] Собран frontend (npm run build)
-- [ ] Собран backend (npm run build)
-- [ ] Создан файл backend/.env с учетными данными
+- [ ] Собран backend с бандлингом (npm run build)
 - [ ] Файлы загружены на сервер (scp)
 
 **На сервере:**
 - [ ] Установлен Node.js 22.x LTS
-- [ ] Создана структура директорий /var/www/alexanderlapygin.com/html/showcase/sbp-payment
-- [ ] Файлы перемещены в правильные директории
-- [ ] Установлены production зависимости backend
-- [ ] Настроен Nginx
+- [ ] Создана структура директорий в /var/www/alexanderlapygin.com/html/showcase/payments/sbp/
+- [ ] Создан файл .env с YooKassa ключами
+- [ ] Настроен Nginx (добавлен location /api/)
 - [ ] Создана служба systemd или PM2
-- [ ] Backend запущен и работает
-- [ ] SSL сертификат установлен (Let's Encrypt)
-- [ ] Файрвол настроен (UFW)
 - [ ] Права доступа настроены (www-data)
+- [ ] Backend запущен и работает
 - [ ] Проверена работа через браузер
 - [ ] Настроены логи и мониторинг
+
+**Примечания:**
+- SSL сертификат уже настроен для alexanderlapygin.com
+- Файрвол (UFW) настраивается по необходимости
+- node_modules НЕ нужны благодаря бандлингу
 
 ---
 
