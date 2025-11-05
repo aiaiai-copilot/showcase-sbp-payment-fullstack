@@ -42,20 +42,18 @@
 
 ### Необходимое ПО
 
+**На сервере должно быть установлено:**
+
 ```bash
 # Node.js 22.x LTS
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# Nginx
-sudo apt-get install -y nginx
-
-# Git (для клонирования репозитория)
-sudo apt-get install -y git
-
 # PM2 (опционально, для управления процессами)
 sudo npm install -g pm2
 ```
+
+**Примечание:** Nginx должен быть уже установлен на VPS.
 
 ### Проверка установки
 
@@ -69,40 +67,36 @@ nginx -v        # любая версия
 
 ## Подготовка к развертыванию
 
-### 1. Клонирование репозитория
+### Сборка на локальной машине
+
+**1. Клонируйте репозиторий локально:**
 
 ```bash
-cd /var/www
-sudo git clone https://github.com/aiaiai-copilot/showcase-sbp-payment-fullstack.git sbp-payment
-cd sbp-payment
+git clone https://github.com/aiaiai-copilot/showcase-sbp-payment-fullstack.git
+cd showcase-sbp-payment-fullstack
 ```
 
-### 2. Установка зависимостей
+**2. Установите зависимости и соберите frontend:**
 
 ```bash
-# Корневые зависимости
-npm install
-
-# Backend
-cd backend
-npm ci --production
-cd ..
-
-# Frontend
 cd frontend
 npm install
+npm run build
+# Создается директория frontend/dist/ (~5 MB)
 cd ..
 ```
 
-### 3. Настройка переменных окружения
-
-Создайте файл `backend/.env`:
+**3. Установите зависимости и соберите backend:**
 
 ```bash
-sudo nano backend/.env
+cd backend
+npm install
+npm run build
+# Создается директория backend/dist/
+cd ..
 ```
 
-Содержимое:
+**4. Создайте файл backend/.env локально:**
 
 ```env
 # Конфигурация сервера
@@ -124,23 +118,72 @@ LOG_LEVEL=info
 **ВАЖНО:**
 - Используйте только тестовые ключи (начинаются с `test_`)
 - Никогда не используйте продакшн-ключи в демо-приложении
-- Файл `.env` не должен быть доступен публично
 
-### 4. Сборка приложения
+---
+
+### Загрузка на сервер
+
+**1. Создайте структуру директорий на сервере:**
 
 ```bash
-# Frontend
-cd frontend
-npm run build
-# Создается директория frontend/dist/
-
-# Backend
-cd ../backend
-npm run build
-# Создается директория backend/dist/
-
-cd ..
+sudo mkdir -p /var/www/sbp-payment/frontend
+sudo mkdir -p /var/www/sbp-payment/backend
 ```
+
+**2. Загрузите файлы с локальной машины (выполняйте локально):**
+
+```bash
+# Frontend - только собранная статика
+scp -r frontend/dist/ user@your-server:/tmp/frontend-dist/
+
+# Backend - собранный код
+scp -r backend/dist/ user@your-server:/tmp/backend-dist/
+
+# Backend - package.json и .env
+scp backend/package.json user@your-server:/tmp/
+scp backend/package-lock.json user@your-server:/tmp/
+scp backend/.env user@your-server:/tmp/
+```
+
+**3. На сервере переместите файлы и установите зависимости:**
+
+```bash
+# Переместить frontend
+sudo mv /tmp/frontend-dist /var/www/sbp-payment/frontend/dist
+
+# Настроить backend
+sudo mv /tmp/backend-dist /var/www/sbp-payment/backend/dist
+sudo mv /tmp/package.json /var/www/sbp-payment/backend/
+sudo mv /tmp/package-lock.json /var/www/sbp-payment/backend/
+sudo mv /tmp/.env /var/www/sbp-payment/backend/
+
+# Установить только production зависимости backend
+cd /var/www/sbp-payment/backend
+sudo npm ci --omit=dev
+
+# Вернуться
+cd /var/www/sbp-payment
+```
+
+**Итоговая структура на сервере:**
+
+```
+/var/www/sbp-payment/
+├── backend/
+│   ├── dist/              # Собранный backend код
+│   ├── node_modules/      # Только production зависимости (~150 MB)
+│   ├── package.json
+│   ├── package-lock.json
+│   └── .env               # Конфигурация
+└── frontend/
+    └── dist/              # Собранная статика (~5 MB)
+```
+
+**Преимущества этого подхода:**
+- ✅ Минимальный размер на сервере (~160 MB вместо ~500 MB)
+- ✅ Нет исходного кода на production
+- ✅ Нет dev-зависимостей
+- ✅ Быстрая загрузка и обновление
 
 ---
 
@@ -454,24 +497,54 @@ df -h
 
 ### Обновление приложения
 
-```bash
-cd /var/www/sbp-payment
+**На локальной машине:**
 
+```bash
+cd showcase-sbp-payment-fullstack
+
+# Получить обновления
+git pull
+
+# Пересобрать frontend
+cd frontend
+npm install
+npm run build
+cd ..
+
+# Пересобрать backend
+cd backend
+npm install
+npm run build
+cd ..
+
+# Загрузить обновленные файлы
+scp -r frontend/dist/ user@your-server:/tmp/frontend-dist/
+scp -r backend/dist/ user@your-server:/tmp/backend-dist/
+scp backend/package.json user@your-server:/tmp/
+scp backend/package-lock.json user@your-server:/tmp/
+```
+
+**На сервере:**
+
+```bash
 # Остановить backend
 sudo systemctl stop sbp-backend
 # или
 pm2 stop sbp-backend
 
-# Получить обновления
-sudo git pull
+# Удалить старые файлы
+sudo rm -rf /var/www/sbp-payment/frontend/dist
+sudo rm -rf /var/www/sbp-payment/backend/dist
 
-# Обновить зависимости
-cd backend && npm ci --production && cd ..
-cd frontend && npm install && cd ..
+# Переместить новые файлы
+sudo mv /tmp/frontend-dist /var/www/sbp-payment/frontend/dist
+sudo mv /tmp/backend-dist /var/www/sbp-payment/backend/dist
+sudo mv /tmp/package.json /var/www/sbp-payment/backend/
+sudo mv /tmp/package-lock.json /var/www/sbp-payment/backend/
 
-# Пересобрать
-cd frontend && npm run build && cd ..
-cd backend && npm run build && cd ..
+# Обновить зависимости backend (если изменились)
+cd /var/www/sbp-payment/backend
+sudo npm ci --omit=dev
 
 # Запустить backend
 sudo systemctl start sbp-backend
@@ -615,16 +688,24 @@ curl https://api.yookassa.ru/v3
 
 ## Чеклист развертывания
 
+**Локально:**
 - [ ] Клонирован репозиторий
-- [ ] Установлены зависимости (npm install)
-- [ ] Создан файл backend/.env с учетными данными
 - [ ] Собран frontend (npm run build)
 - [ ] Собран backend (npm run build)
+- [ ] Создан файл backend/.env с учетными данными
+- [ ] Файлы загружены на сервер (scp)
+
+**На сервере:**
+- [ ] Установлен Node.js 22.x LTS
+- [ ] Создана структура директорий /var/www/sbp-payment
+- [ ] Файлы перемещены в правильные директории
+- [ ] Установлены production зависимости backend
 - [ ] Настроен Nginx
 - [ ] Создана служба systemd или PM2
 - [ ] Backend запущен и работает
-- [ ] SSL сертификат установлен
-- [ ] Файрвол настроен
+- [ ] SSL сертификат установлен (Let's Encrypt)
+- [ ] Файрвол настроен (UFW)
+- [ ] Права доступа настроены (www-data)
 - [ ] Проверена работа через браузер
 - [ ] Настроены логи и мониторинг
 
