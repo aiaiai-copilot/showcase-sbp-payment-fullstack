@@ -128,50 +128,50 @@ LOG_LEVEL=info
 **1. Создайте структуру директорий на сервере:**
 
 ```bash
-mkdir -p /var/www/sbp-payment/frontend
-mkdir -p /var/www/sbp-payment/backend
+mkdir -p /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend
+mkdir -p /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
 ```
 
 **2. Загрузите файлы с локальной машины (выполняйте локально):**
 
 ```bash
 # Frontend - только собранная статика
-scp -r frontend/dist/ root@your-server:/var/www/sbp-payment/frontend/
+scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/
 
 # Backend - собранный код
-scp -r backend/dist/ root@your-server:/var/www/sbp-payment/backend/
+scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
 
 # Backend - package.json и .env
-scp backend/package.json root@your-server:/var/www/sbp-payment/backend/
-scp backend/package-lock.json root@your-server:/var/www/sbp-payment/backend/
-scp backend/.env root@your-server:/var/www/sbp-payment/backend/
+scp backend/package.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
+scp backend/package-lock.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
+scp backend/.env root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
 ```
 
 **3. На сервере установите зависимости:**
 
 ```bash
 # Установить только production зависимости backend
-cd /var/www/sbp-payment/backend
+cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
 npm ci --omit=dev
 
 # Вернуться
-cd /var/www/sbp-payment
+cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment
 ```
 
 **4. Настройте права доступа для Nginx:**
 
 ```bash
 # Установить владельца www-data для всех файлов
-chown -R www-data:www-data /var/www/sbp-payment
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
 
 # Ограничить доступ к .env файлу
-chmod 600 /var/www/sbp-payment/backend/.env
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 ```
 
 **Итоговая структура на сервере:**
 
 ```
-/var/www/sbp-payment/
+/var/www/alexanderlapygin.com/html/showcase/sbp-payment/
 ├── backend/
 │   ├── dist/              # Собранный backend код
 │   ├── node_modules/      # Только production зависимости (~150 MB)
@@ -212,7 +212,7 @@ server {
 
     # Frontend - статические файлы
     location / {
-        root /var/www/sbp-payment/frontend/dist;
+        root /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist;
         try_files $uri $uri/ /index.html;
 
         # Кэширование статики
@@ -305,7 +305,7 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/sbp-payment/backend
+WorkingDirectory=/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
 
 # Команда запуска
 ExecStart=/usr/bin/node dist/server.js
@@ -316,7 +316,7 @@ RestartSec=10
 
 # Переменные окружения
 Environment=NODE_ENV=production
-EnvironmentFile=/var/www/sbp-payment/backend/.env
+EnvironmentFile=/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 
 # Логи
 StandardOutput=journal
@@ -336,10 +336,10 @@ WantedBy=multi-user.target
 
 ```bash
 # Сделать www-data владельцем директорий
-chown -R www-data:www-data /var/www/sbp-payment
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
 
 # Права на .env (только чтение владельцем)
-chmod 600 /var/www/sbp-payment/backend/.env
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 ```
 
 ### 4. Запуск службы
@@ -381,7 +381,7 @@ journalctl -u sbp-backend -n 100
 ### 1. Установка и запуск
 
 ```bash
-cd /var/www/sbp-payment/backend
+cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
 
 # Запуск приложения
 pm2 start dist/server.js --name sbp-backend
@@ -437,7 +437,7 @@ journalctl -u sbp-backend -n 50
 
 ```bash
 # Проверить файлы собраны
-ls -la /var/www/sbp-payment/frontend/dist/
+ls -la /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist/
 # Должны быть: index.html, assets/, и др.
 
 # Проверить Nginx
@@ -524,10 +524,10 @@ npm run build
 cd ..
 
 # Загрузить обновленные файлы
-scp -r frontend/dist/ root@your-server:/var/www/sbp-payment/frontend/dist-new
-scp -r backend/dist/ root@your-server:/var/www/sbp-payment/backend/dist-new
-scp backend/package.json root@your-server:/var/www/sbp-payment/backend/
-scp backend/package-lock.json root@your-server:/var/www/sbp-payment/backend/
+scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist-new
+scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist-new
+scp backend/package.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
+scp backend/package-lock.json root@your-server:/var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/
 ```
 
 **На сервере:**
@@ -539,19 +539,19 @@ systemctl stop sbp-backend
 pm2 stop sbp-backend
 
 # Заменить frontend
-rm -rf /var/www/sbp-payment/frontend/dist
-mv /var/www/sbp-payment/frontend/dist-new /var/www/sbp-payment/frontend/dist
+rm -rf /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist
+mv /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist-new /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist
 
 # Заменить backend
-rm -rf /var/www/sbp-payment/backend/dist
-mv /var/www/sbp-payment/backend/dist-new /var/www/sbp-payment/backend/dist
+rm -rf /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist
+mv /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist-new /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/dist
 
 # Обновить зависимости backend (если изменились)
-cd /var/www/sbp-payment/backend
+cd /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend
 npm ci --omit=dev
 
 # Настроить права доступа
-chown -R www-data:www-data /var/www/sbp-payment
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
 
 # Запустить backend
 systemctl start sbp-backend
@@ -592,14 +592,14 @@ apt-get upgrade -y
 4. **Backup .env файла:**
 ```bash
 # Создать резервную копию
-cp /var/www/sbp-payment/backend/.env /root/backup-env
+cp /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env /root/backup-env
 ```
 
 5. **Ограничение прав:**
 ```bash
 # Убедиться что файлы принадлежат www-data
-chown -R www-data:www-data /var/www/sbp-payment
-chmod 600 /var/www/sbp-payment/backend/.env
+chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 ```
 
 ---
@@ -619,11 +619,11 @@ lsof -i :3000
 kill -9 <PID>
 
 # 2. Отсутствует .env
-ls -la /var/www/sbp-payment/backend/.env
+ls -la /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 
 # 3. Неправильные права
-chown www-data:www-data /var/www/sbp-payment/backend/.env
-chmod 600 /var/www/sbp-payment/backend/.env
+chown www-data:www-data /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
+chmod 600 /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 ```
 
 ### Frontend не загружается
@@ -634,7 +634,7 @@ nginx -t
 systemctl status nginx
 
 # Проверить файлы
-ls -la /var/www/sbp-payment/frontend/dist/
+ls -la /var/www/alexanderlapygin.com/html/showcase/sbp-payment/frontend/dist/
 
 # Проверить логи Nginx
 tail -f /var/log/nginx/sbp-payment-error.log
@@ -656,7 +656,7 @@ curl http://ваш-домен.com/api/payments
 
 ```bash
 # Проверить .env
-cat /var/www/sbp-payment/backend/.env
+cat /var/www/alexanderlapygin.com/html/showcase/sbp-payment/backend/.env
 
 # Проверить ключ начинается с test_
 # Проверить shop_id корректный
@@ -705,7 +705,7 @@ curl https://api.yookassa.ru/v3
 
 **На сервере:**
 - [ ] Установлен Node.js 22.x LTS
-- [ ] Создана структура директорий /var/www/sbp-payment
+- [ ] Создана структура директорий /var/www/alexanderlapygin.com/html/showcase/sbp-payment
 - [ ] Файлы перемещены в правильные директории
 - [ ] Установлены production зависимости backend
 - [ ] Настроен Nginx
