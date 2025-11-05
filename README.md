@@ -46,16 +46,36 @@ cd backend && npm install
 cd ../frontend && npm install
 ```
 
-### 3. Configure Environment
+### 3. Configure Environment (Optional for Local Dev)
 
-**Backend** (`backend/.env`):
-```bash
-cp backend/.env.example backend/.env
-# Edit backend/.env with your YooKassa test credentials
+**Backend `.env` is OPTIONAL for local development!**
+
+The code has built-in defaults that work out of the box:
+```typescript
+// Default values if .env is not present:
+PORT=3000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 ```
 
-**⚠️ IMPORTANT:** Your `backend/.env` file **MUST** contain development settings for local work:
+**When you DON'T need `.env`:**
+- ✅ Using default ports (backend: 3000, frontend: 5173)
+- ✅ Working with mocks (no real YooKassa integration)
+- ✅ Standard local development setup
 
+**When you NEED `.env`:**
+- 🔑 Testing real YooKassa payments (requires test credentials)
+- 🔧 Using non-standard ports
+- 🎭 Testing production preview mode locally
+- 🌐 Production deployment (required!)
+
+**To create `.env` (if needed):**
+```bash
+cp backend/.env.example backend/.env
+# Edit backend/.env with your settings
+```
+
+**Example `backend/.env` for local development:**
 ```env
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
@@ -65,14 +85,24 @@ YOOKASSA_SECRET_KEY=test_your_secret_key
 LOG_LEVEL=info
 ```
 
-**❌ DO NOT use production values in local `.env`:**
-- `NODE_ENV=production` ❌
-- `FRONTEND_URL=https://your-domain.com` ❌
+**⚠️ IMPORTANT: If you create `.env`, match the mode:**
 
-**Frontend** (`frontend/.env`):
+For **development mode** (`npm run dev`):
+```env
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173  # Dev server port
+```
+
+For **production preview** (`npm run build && npm run preview`):
+```env
+NODE_ENV=production
+FRONTEND_URL=http://localhost:4173  # Preview server port
+```
+
+**Frontend `.env` (optional):**
 ```bash
-# Optional - defaults work for local development
-# Vite proxy automatically forwards /api/* to http://localhost:3000
+# Not needed - Vite proxy automatically forwards /api/* to backend
+# Only create if you need custom API URL
 VITE_API_URL=http://localhost:3000
 ```
 

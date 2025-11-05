@@ -683,56 +683,87 @@ curl https://api.yookassa.ru/v3
 **Симптомы:**
 - Frontend показывает CORS ошибку в DevTools
 - Backend логи показывают `OPTIONS` запросы со статусом 204
-- В логах backend: `Frontend URL: https://alexanderlapygin.com` (вместо localhost)
+- В логах backend: неправильный `Frontend URL`
 
 **Причина:**
-Неправильная конфигурация локального `backend/.env` файла.
+Несоответствие между режимом frontend и настройками `.env` в backend.
 
-**Решение:**
+**Решение зависит от режима:**
 
-1. **Проверьте ваш локальный `backend/.env`:**
+#### Режим 1: Development (npm run dev)
+
+**Frontend:**
 ```bash
-cat backend/.env
+cd frontend
+npm run dev  # Порт 5173, с proxy
 ```
 
-2. **Убедитесь что используются DEVELOPMENT настройки:**
+**Backend `.env` должен содержать:**
 ```env
-NODE_ENV=development          # НЕ production!
-FRONTEND_URL=http://localhost:5173  # НЕ https://alexanderlapygin.com!
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173  # Dev server port
 PORT=3000
-YOOKASSA_SHOP_ID=your_test_shop_id
-YOOKASSA_SECRET_KEY=test_your_secret_key
-LOG_LEVEL=info
 ```
 
-3. **Перезапустите backend в development режиме:**
+**Или `.env` может отсутствовать** - дефолтные значения правильные!
+
+**Backend запуск:**
 ```bash
 cd backend
 npm run dev  # НЕ npm start!
 ```
 
-4. **Проверьте логи - должно быть:**
+**Проверка логов:**
 ```
 Environment: development
 Frontend URL: http://localhost:5173
 ```
 
-**Объяснение:**
+---
 
-| Режим | Команда | NODE_ENV | FRONTEND_URL | CORS |
-|-------|---------|----------|--------------|------|
-| **Development** | `npm run dev` | development | http://localhost:5173 | Работает |
-| **Production** | `npm start` | production | https://alexanderlapygin.com | Для сервера |
-| **❌ Ошибка** | `npm run dev` | production ❌ | https://... ❌ | CORS Error |
+#### Режим 2: Production Preview (npm run preview)
 
-**Frontend также важно:**
+**Frontend:**
 ```bash
-# Development - с proxy, без CORS проблем
-cd frontend && npm run dev
-
-# Production preview - требует CORS
-cd frontend && npm run build && npm run preview
+cd frontend
+npm run build    # Собрать production build
+npm run preview  # Порт 4173, БЕЗ proxy
 ```
+
+**Backend `.env` ОБЯЗАТЕЛЕН:**
+```env
+NODE_ENV=production
+FRONTEND_URL=http://localhost:4173  # Preview server port, НЕ 5173!
+PORT=3000
+```
+
+**Backend запуск:**
+```bash
+cd backend
+npm run build  # Собрать
+npm start      # Запустить production режим
+```
+
+**Проверка логов:**
+```
+Environment: production
+Frontend URL: http://localhost:4173
+```
+
+---
+
+**Сводная таблица:**
+
+| Frontend режим | Frontend команда | Frontend порт | Backend .env требуется? | FRONTEND_URL | Backend команда |
+|---------------|------------------|---------------|------------------------|--------------|-----------------|
+| **Development** | `npm run dev` | 5173 | ❌ Нет (есть дефолты) | http://localhost:5173 | `npm run dev` |
+| **Preview** | `npm run preview` | 4173 | ✅ Да | http://localhost:4173 | `npm start` |
+| **Production** | deployed | 443 | ✅ Да (на сервере) | https://your-domain.com | systemd/PM2 |
+
+**Частые ошибки:**
+- ❌ `npm run dev` + `.env` с production URL → CORS error
+- ❌ `npm run preview` + `.env` с портом 5173 → CORS error
+- ❌ `npm run preview` без `.env` → CORS error (дефолт 5173 ≠ preview 4173)
 
 ---
 

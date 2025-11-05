@@ -15,18 +15,56 @@
 ```typescript
 import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();  // <-- Читает файл .env из рабочей директории
+// Load environment variables from .env file (if exists)
+dotenv.config();
 
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  yookassa: {
+    shopId: process.env.YOOKASSA_SHOP_ID || '',
+    secretKey: process.env.YOOKASSA_SECRET_KEY || '',
+  },
   // ...
 };
 ```
 
-**Важно:** Вызов `dotenv.config()` есть в исходном коде и **включается в production build** (esbuild бандлит всё, включая библиотеку `dotenv`).
+**Важно:**
+1. `dotenv.config()` есть в исходном коде и **включается в production build** (esbuild бандлит всё, включая библиотеку `dotenv`)
+2. **Дефолтные значения:** Если `.env` не существует или переменная не установлена, используются значения после `||`
+3. **Для local development:** Дефолтные значения уже правильные! `.env` **опционален**
+
+### Когда .env не нужен
+
+**Для локальной разработки `.env` НЕ ОБЯЗАТЕЛЕН!**
+
+Если вы запускаете:
+```bash
+cd backend && npm run dev
+cd frontend && npm run dev
+```
+
+И файла `backend/.env` нет, приложение будет использовать дефолтные значения:
+- `PORT = 3000` ✅
+- `NODE_ENV = 'development'` ✅
+- `FRONTEND_URL = 'http://localhost:5173'` ✅
+- `YOOKASSA_SHOP_ID = ''` (работает с моками) ⚠️
+- `YOOKASSA_SECRET_KEY = ''` (работает с моками) ⚠️
+
+**Приложение запустится и будет работать в mock режиме!**
+
+### Когда .env НУЖЕН
+
+**Локально `.env` нужен для:**
+1. 🔑 Тестирования реальных YooKassa платежей (credentials)
+2. 🔧 Изменения портов или других настроек
+3. 🎭 **Production preview** локально (`npm run preview` на порту 4173)
+
+**На production сервере `.env` ОБЯЗАТЕЛЕН:**
+- ❌ Дефолтный `FRONTEND_URL=http://localhost:5173` неправильный для production
+- ❌ Дефолтный `NODE_ENV=development` неправильный для production
+- ❌ Нужны настоящие YooKassa credentials
 
 ---
 
@@ -59,20 +97,31 @@ tsx watch src/server.ts
 
 ```env
 NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173  # Dev server port
 PORT=3000
 YOOKASSA_SHOP_ID=your_test_shop_id
 YOOKASSA_SECRET_KEY=test_your_secret_key
 LOG_LEVEL=info
 ```
 
-**Источник переменных:** Файл `.env` через `dotenv.config()`
+**Источник переменных:**
+- Если `.env` существует: читается через `dotenv.config()`
+- Если `.env` НЕТ: используются дефолтные значения из кода
 
 ---
 
 ### 2️⃣ Production Preview на локальной машине
 
-**Команды:**
+**Цель:** Тестировать production build локально перед деплоем на сервер.
+
+**Frontend команды:**
+```bash
+cd frontend
+npm run build    # Создаёт dist/
+npm run preview  # Запускает на порту 4173
+```
+
+**Backend команды:**
 ```bash
 cd backend
 npm run build  # Создаёт dist/server.js
@@ -101,16 +150,25 @@ node dist/server.js
 
 **Файл:** `backend/.env` (тот же локальный файл)
 
-**Для production preview нужно:**
+**⚠️ ВАЖНО: Для production preview `.env` ОБЯЗАТЕЛЕН!**
+
+**Для production preview локально нужно:**
 ```env
 NODE_ENV=production
-FRONTEND_URL=https://alexanderlapygin.com  # Или другой production URL
-# ... остальные переменные
+FRONTEND_URL=http://localhost:4173  # Preview server port, НЕ 5173!
+PORT=3000
+YOOKASSA_SHOP_ID=your_test_shop_id
+YOOKASSA_SECRET_KEY=test_your_secret_key
+LOG_LEVEL=info
 ```
 
-**Источник переменных:** Файл `.env` через `dotenv.config()`
+**Почему 4173?**
+- `npm run dev` → порт 5173 (dev server с proxy)
+- `npm run preview` → порт 4173 (production preview, БЕЗ proxy, нужен CORS)
 
-**⚠️ Проблема:** Если в локальном `.env` стоят production значения, а вы запускаете `npm run dev`, получите CORS ошибки!
+**Источник переменных:** Файл `.env` через `dotenv.config()` (обязательно!)
+
+**⚠️ Распространённая ошибка:** Если в локальном `.env` стоит `FRONTEND_URL=https://alexanderlapygin.com`, получите CORS ошибки при локальном preview!
 
 ---
 
