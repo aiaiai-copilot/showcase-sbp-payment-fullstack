@@ -117,7 +117,18 @@ npm run build
 cd ..
 ```
 
-**Примечание:** Файл `.env` с секретными ключами НЕ создаётся локально. Он будет создан напрямую на сервере для безопасности.
+**⚠️ ВАЖНО про `.env` файл:**
+
+- **Локальный `.env`** (на вашем компьютере) - для DEVELOPMENT режима
+  - `NODE_ENV=development`
+  - `FRONTEND_URL=http://localhost:5173`
+  - Используется при запуске `npm run dev` для локальной разработки
+
+- **Production `.env`** (на сервере) - для PRODUCTION режима
+  - `NODE_ENV=production`
+  - `FRONTEND_URL=https://alexanderlapygin.com`
+  - Создаётся напрямую на сервере (см. ниже)
+  - НЕ передаётся через scp для безопасности
 
 ---
 
@@ -663,6 +674,62 @@ cat /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 
 # Проверить доступность YooKassa API
 curl https://api.yookassa.ru/v3
+```
+
+### CORS ошибки при локальной разработке
+
+**Симптомы:**
+- Frontend показывает CORS ошибку в DevTools
+- Backend логи показывают `OPTIONS` запросы со статусом 204
+- В логах backend: `Frontend URL: https://alexanderlapygin.com` (вместо localhost)
+
+**Причина:**
+Неправильная конфигурация локального `backend/.env` файла.
+
+**Решение:**
+
+1. **Проверьте ваш локальный `backend/.env`:**
+```bash
+cat backend/.env
+```
+
+2. **Убедитесь что используются DEVELOPMENT настройки:**
+```env
+NODE_ENV=development          # НЕ production!
+FRONTEND_URL=http://localhost:5173  # НЕ https://alexanderlapygin.com!
+PORT=3000
+YOOKASSA_SHOP_ID=your_test_shop_id
+YOOKASSA_SECRET_KEY=test_your_secret_key
+LOG_LEVEL=info
+```
+
+3. **Перезапустите backend в development режиме:**
+```bash
+cd backend
+npm run dev  # НЕ npm start!
+```
+
+4. **Проверьте логи - должно быть:**
+```
+Environment: development
+Frontend URL: http://localhost:5173
+```
+
+**Объяснение:**
+
+| Режим | Команда | NODE_ENV | FRONTEND_URL | CORS |
+|-------|---------|----------|--------------|------|
+| **Development** | `npm run dev` | development | http://localhost:5173 | Работает |
+| **Production** | `npm start` | production | https://alexanderlapygin.com | Для сервера |
+| **❌ Ошибка** | `npm run dev` | production ❌ | https://... ❌ | CORS Error |
+
+**Frontend также важно:**
+```bash
+# Development - с proxy, без CORS проблем
+cd frontend && npm run dev
+
+# Production preview - требует CORS
+cd frontend && npm run build && npm run preview
 ```
 
 ---

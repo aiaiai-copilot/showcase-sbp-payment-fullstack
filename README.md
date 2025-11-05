@@ -54,13 +54,31 @@ cp backend/.env.example backend/.env
 # Edit backend/.env with your YooKassa test credentials
 ```
 
+**⚠️ IMPORTANT:** Your `backend/.env` file **MUST** contain development settings for local work:
+
+```env
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+PORT=3000
+YOOKASSA_SHOP_ID=your_test_shop_id
+YOOKASSA_SECRET_KEY=test_your_secret_key
+LOG_LEVEL=info
+```
+
+**❌ DO NOT use production values in local `.env`:**
+- `NODE_ENV=production` ❌
+- `FRONTEND_URL=https://your-domain.com` ❌
+
 **Frontend** (`frontend/.env`):
 ```bash
 # Optional - defaults work for local development
+# Vite proxy automatically forwards /api/* to http://localhost:3000
 VITE_API_URL=http://localhost:3000
 ```
 
 ### 4. Run Development Servers
+
+**For local development:**
 
 ```bash
 # Start both frontend and backend concurrently
@@ -71,9 +89,39 @@ npm run dev:backend    # http://localhost:3000
 npm run dev:frontend   # http://localhost:5173
 ```
 
+**For production preview (testing production build locally):**
+
+```bash
+# Backend - uses system environment variables or .env with production settings
+cd backend && npm start
+
+# Frontend - requires build first, NO proxy (CORS required)
+cd frontend && npm run build && npm run preview
+```
+
 ### 5. Access Application
 
-Open http://localhost:5173 in your browser.
+**Development mode:**
+- Open http://localhost:5173 in your browser
+- Frontend dev server with HMR and proxy to backend
+- No CORS issues (proxy handles API requests)
+
+**Production preview mode:**
+- Open http://localhost:4173 in your browser
+- Simulates production deployment locally
+- CORS must be configured properly
+
+### 6. Development vs Production
+
+| Aspect | Development (`npm run dev`) | Production Preview (`npm run preview`) |
+|--------|----------------------------|----------------------------------------|
+| **Frontend** | Vite dev server with HMR | Serves built files from `dist/` |
+| **Proxy** | ✅ Yes - `/api/*` → `localhost:3000` | ❌ No - direct requests to backend |
+| **CORS** | ❌ Not needed (proxy) | ✅ Required |
+| **Build** | ❌ Not required | ✅ Required (`npm run build`) |
+| **Source Maps** | ✅ Yes | ❌ No (optional) |
+| **Speed** | ⚡ Fast (on-the-fly) | 🐌 Slower (pre-built) |
+| **`.env`** | Uses development values | Uses production values |
 
 **Test Mode:** Application works without real YooKassa credentials using mocks.
 
@@ -186,8 +234,46 @@ This is a portfolio/demo project. Feel free to fork and adapt for your own use.
 
 ---
 
-**Quick troubleshooting:**
+## 🔧 Troubleshooting
+
+### CORS Errors During Local Development
+
+**Symptoms:**
+- Frontend shows CORS error in browser DevTools
+- Backend logs show `OPTIONS` requests with 204 status
+- Backend logs show `Frontend URL: https://your-domain.com` (instead of localhost)
+
+**Solution:**
+
+1. **Check your local `backend/.env` file:**
+```bash
+cat backend/.env
+```
+
+2. **Ensure it contains DEVELOPMENT settings:**
+```env
+NODE_ENV=development          # NOT production!
+FRONTEND_URL=http://localhost:5173  # NOT https://...!
+```
+
+3. **Restart backend in development mode:**
+```bash
+cd backend
+npm run dev  # NOT npm start!
+```
+
+4. **Check logs - should show:**
+```
+Environment: development
+Frontend URL: http://localhost:5173
+```
+
+**Root cause:** Running `npm run dev` with production values in `.env` causes CORS issues because backend expects requests from production domain, not localhost.
+
+### Other Common Issues
+
 - Error: `EPERM` on Windows → Install dependencies in backend/ and frontend/ separately
 - Port 3000 in use → Change `PORT` in backend/.env
 - Port 5173 in use → Change in frontend/vite.config.ts
 - YooKassa API errors → Check credentials in backend/.env start with `test_`
+- TypeScript errors → Run `npm run type-check` in both frontend/ and backend/
