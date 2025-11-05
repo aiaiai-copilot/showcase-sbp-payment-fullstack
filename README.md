@@ -144,6 +144,8 @@ npm run test:contract
 ## 📚 Documentation
 
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Complete setup guide
+- **[docs/ENVIRONMENT.md](./docs/ENVIRONMENT.md)** - Environment variables explained (development vs production)
+- **[DEPLOY.md](./DEPLOY.md)** - Production deployment guide
 - **[CLAUDE.md](./CLAUDE.md)** - Project context for Claude Code
 - **[.claude/WORKFLOW.md](./.claude/WORKFLOW.md)** - Development workflow with subagents
 - **[backend/README.md](./backend/README.md)** - Backend API documentation
