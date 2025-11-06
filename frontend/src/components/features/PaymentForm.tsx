@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCreatePayment } from '@/hooks/useCreatePayment';
 import type { CreatePaymentResponse } from '@/lib/api';
+import sbpLogo from '@/assets/images/sbp-logo.svg';
 
 const paymentSchema = z.object({
   amount: z
@@ -58,8 +59,15 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl text-center">Pay via SBP</CardTitle>
+      <CardHeader className="space-y-3">
+        <div className="flex items-center justify-center gap-3">
+          <img
+            src={sbpLogo}
+            alt="СБП"
+            className="h-10"
+          />
+          <CardTitle className="text-2xl">Quick Payment</CardTitle>
+        </div>
         <CardDescription className="text-base text-center">
           Enter payment details to generate a QR code for SBP payment
         </CardDescription>
