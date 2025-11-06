@@ -2,7 +2,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { CreatePaymentResponse } from '@/lib/api';
-import sbpLogo from '@/assets/images/sbp-logo.svg';
 
 interface QRCodeDisplayProps {
   payment: CreatePaymentResponse;
@@ -18,14 +17,7 @@ export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDi
   return (
     <Card className="w-full max-w-md mx-auto border-t-4 border-t-green-600">
       <CardHeader className="space-y-2 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <img
-            src={sbpLogo}
-            alt="СБП"
-            className="h-8"
-          />
-          <CardTitle className="text-2xl">Payment Demo</CardTitle>
-        </div>
+        <CardTitle className="text-2xl">SBP Payment Demo</CardTitle>
         <CardDescription className="text-base">
           Use your banking app with SBP support to scan this QR code
         </CardDescription>
