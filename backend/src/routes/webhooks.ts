@@ -14,13 +14,13 @@ export async function webhookRoutes(
   storage: PaymentStorage
 ) {
   /**
-   * POST /api/webhooks/yookassa - Receive YooKassa webhook notification
+   * POST /webhooks/yookassa - Receive YooKassa webhook notification
    */
   fastify.post<{
     Body: WebhookRequest;
     Reply: WebhookResponse;
   }>(
-    '/api/webhooks/yookassa',
+    '/webhooks/yookassa',
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const webhook = request.body as WebhookRequest;

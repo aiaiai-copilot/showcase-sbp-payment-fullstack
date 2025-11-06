@@ -24,12 +24,12 @@ export async function paymentRoutes(
   yookassaService: YooKassaService
 ) {
   /**
-   * POST /api/payments - Create new payment
+   * POST /payments - Create new payment
    */
   fastify.post<{
     Body: CreatePaymentRequest;
     Reply: CreatePaymentResponse | ErrorResponse;
-  }>('/api/payments', async (request: FastifyRequest, reply: FastifyReply) => {
+  }>('/payments', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { amount, description } = request.body as CreatePaymentRequest;
 
@@ -93,12 +93,12 @@ export async function paymentRoutes(
   });
 
   /**
-   * GET /api/payments/:id - Get payment status
+   * GET /payments/:id - Get payment status
    */
   fastify.get<{
     Params: { id: string };
     Reply: GetPaymentResponse | ErrorResponse;
-  }>('/api/payments/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  }>('/payments/:id', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { id } = request.params as { id: string };
 
