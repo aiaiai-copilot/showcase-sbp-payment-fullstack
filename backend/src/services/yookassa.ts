@@ -96,7 +96,7 @@ export class YooKassaService {
       );
     }
 
-    return response.json();
+    return response.json() as Promise<YooKassaPaymentResponse>;
   }
 
   /**
@@ -118,7 +118,7 @@ export class YooKassaService {
       );
     }
 
-    return response.json();
+    return response.json() as Promise<YooKassaPaymentResponse>;
   }
 
   /**

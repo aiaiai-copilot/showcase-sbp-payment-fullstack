@@ -46,21 +46,69 @@ cd backend && npm install
 cd ../frontend && npm install
 ```
 
-### 3. Configure Environment
+### 3. Configure Environment (Optional for Local Dev)
 
-**Backend** (`backend/.env`):
-```bash
-cp backend/.env.example backend/.env
-# Edit backend/.env with your YooKassa test credentials
+**Backend `.env` is OPTIONAL for local development!**
+
+The code has built-in defaults that work out of the box:
+```typescript
+// Default values if .env is not present:
+PORT=3000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 ```
 
-**Frontend** (`frontend/.env`):
+**When you DON'T need `.env`:**
+- ✅ Using default ports (backend: 3000, frontend: 5173)
+- ✅ Working with mocks (no real YooKassa integration)
+- ✅ Standard local development setup
+
+**When you NEED `.env`:**
+- 🔑 Testing real YooKassa payments (requires test credentials)
+- 🔧 Using non-standard ports
+- 🎭 Testing production preview mode locally
+- 🌐 Production deployment (required!)
+
+**To create `.env` (if needed):**
 ```bash
-# Optional - defaults work for local development
+cp backend/.env.example backend/.env
+# Edit backend/.env with your settings
+```
+
+**Example `backend/.env` for local development:**
+```env
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+PORT=3000
+YOOKASSA_SHOP_ID=your_test_shop_id
+YOOKASSA_SECRET_KEY=test_your_secret_key
+LOG_LEVEL=info
+```
+
+**⚠️ IMPORTANT: If you create `.env`, match the mode:**
+
+For **development mode** (`npm run dev`):
+```env
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173  # Dev server port
+```
+
+For **production preview** (`npm run build && npm run preview`):
+```env
+NODE_ENV=production
+FRONTEND_URL=http://localhost:4173  # Preview server port
+```
+
+**Frontend `.env` (optional):**
+```bash
+# Not needed - Vite proxy automatically forwards /api/* to backend
+# Only create if you need custom API URL
 VITE_API_URL=http://localhost:3000
 ```
 
 ### 4. Run Development Servers
+
+**For local development:**
 
 ```bash
 # Start both frontend and backend concurrently
@@ -71,9 +119,39 @@ npm run dev:backend    # http://localhost:3000
 npm run dev:frontend   # http://localhost:5173
 ```
 
+**For production preview (testing production build locally):**
+
+```bash
+# Backend - uses system environment variables or .env with production settings
+cd backend && npm start
+
+# Frontend - requires build first, NO proxy (CORS required)
+cd frontend && npm run build && npm run preview
+```
+
 ### 5. Access Application
 
-Open http://localhost:5173 in your browser.
+**Development mode:**
+- Open http://localhost:5173 in your browser
+- Frontend dev server with HMR and proxy to backend
+- No CORS issues (proxy handles API requests)
+
+**Production preview mode:**
+- Open http://localhost:4173 in your browser
+- Simulates production deployment locally
+- CORS must be configured properly
+
+### 6. Development vs Production
+
+| Aspect | Development (`npm run dev`) | Production Preview (`npm run preview`) |
+|--------|----------------------------|----------------------------------------|
+| **Frontend** | Vite dev server with HMR | Serves built files from `dist/` |
+| **Proxy** | ✅ Yes - `/api/*` → `localhost:3000` | ❌ No - direct requests to backend |
+| **CORS** | ❌ Not needed (proxy) | ✅ Required |
+| **Build** | ❌ Not required | ✅ Required (`npm run build`) |
+| **Source Maps** | ✅ Yes | ❌ No (optional) |
+| **Speed** | ⚡ Fast (on-the-fly) | 🐌 Slower (pre-built) |
+| **`.env`** | Uses development values | Uses production values |
 
 **Test Mode:** Application works without real YooKassa credentials using mocks.
 
@@ -96,6 +174,8 @@ npm run test:contract
 ## 📚 Documentation
 
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Complete setup guide
+- **[docs/ENVIRONMENT.md](./docs/ENVIRONMENT.md)** - Environment variables explained (development vs production)
+- **[DEPLOY.md](./DEPLOY.md)** - Production deployment guide
 - **[CLAUDE.md](./CLAUDE.md)** - Project context for Claude Code
 - **[.claude/WORKFLOW.md](./.claude/WORKFLOW.md)** - Development workflow with subagents
 - **[backend/README.md](./backend/README.md)** - Backend API documentation
@@ -186,8 +266,46 @@ This is a portfolio/demo project. Feel free to fork and adapt for your own use.
 
 ---
 
-**Quick troubleshooting:**
+## 🔧 Troubleshooting
+
+### CORS Errors During Local Development
+
+**Symptoms:**
+- Frontend shows CORS error in browser DevTools
+- Backend logs show `OPTIONS` requests with 204 status
+- Backend logs show `Frontend URL: https://your-domain.com` (instead of localhost)
+
+**Solution:**
+
+1. **Check your local `backend/.env` file:**
+```bash
+cat backend/.env
+```
+
+2. **Ensure it contains DEVELOPMENT settings:**
+```env
+NODE_ENV=development          # NOT production!
+FRONTEND_URL=http://localhost:5173  # NOT https://...!
+```
+
+3. **Restart backend in development mode:**
+```bash
+cd backend
+npm run dev  # NOT npm start!
+```
+
+4. **Check logs - should show:**
+```
+Environment: development
+Frontend URL: http://localhost:5173
+```
+
+**Root cause:** Running `npm run dev` with production values in `.env` causes CORS issues because backend expects requests from production domain, not localhost.
+
+### Other Common Issues
+
 - Error: `EPERM` on Windows → Install dependencies in backend/ and frontend/ separately
 - Port 3000 in use → Change `PORT` in backend/.env
 - Port 5173 in use → Change in frontend/vite.config.ts
 - YooKassa API errors → Check credentials in backend/.env start with `test_`
+- TypeScript errors → Run `npm run type-check` in both frontend/ and backend/
