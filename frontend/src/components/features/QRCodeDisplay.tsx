@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { CreatePaymentResponse } from '@/lib/api';
 import sbpLogo from '@/assets/images/sbp-logo.svg';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
+import type { CreatePaymentResponse } from '@/lib/api';
 
 interface QRCodeDisplayProps {
   payment: CreatePaymentResponse;
