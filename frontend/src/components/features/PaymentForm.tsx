@@ -60,13 +60,12 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-3">
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex justify-center">
           <img
             src={sbpLogo}
             alt="СБП"
-            className="h-10"
+            className="h-12"
           />
-          <CardTitle className="text-2xl">Quick Payment</CardTitle>
         </div>
         <CardDescription className="text-base text-center">
           Enter payment details to generate a QR code for SBP payment
