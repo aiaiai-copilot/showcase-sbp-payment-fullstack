@@ -141,19 +141,22 @@ cd ..
 **1. Создайте структуру директорий на сервере:**
 
 ```bash
-mkdir -p /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend
 mkdir -p /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend
 ```
 
 **2. Загрузите файлы с локальной машины (выполняйте локально):**
 
 ```bash
-# Frontend - только собранная статика
-scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/
+# Frontend - только собранная статика (напрямую в showcase/payments/sbp/)
+scp -r frontend/dist/* root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/
 
 # Backend - собранный и забандленный код (один файл!)
-scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/
+scp -r backend/dist root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/
 ```
+
+**Важно:** Frontend файлы идут напрямую в `/showcase/payments/sbp/` потому что:
+- URL доступа: `https://alexanderlapygin.com/showcase/payments/sbp/`
+- Nginx `root /var/www/alexanderlapygin.com/html;` обслуживает статику по этому пути
 
 **Важно:** Благодаря бандлингу esbuild, backend/dist/server.js содержит весь код вместе с зависимостями. package.json и node_modules на сервере НЕ нужны!
 
@@ -204,13 +207,17 @@ chmod 600 /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/.env
 
 ```
 /var/www/alexanderlapygin.com/html/showcase/payments/sbp/
-├── backend/
-│   ├── dist/
-│   │   ├── server.js      # Забандленный backend код со всеми зависимостями (~2-3 MB)
-│   │   └── server.js.map  # Source map для отладки
-│   └── .env               # Конфигурация
-└── frontend/
-    └── dist/              # Собранная статика (~5 MB)
+├── index.html             # Frontend - собранная статика (~5 MB)
+├── assets/
+│   ├── index-[hash].js
+│   ├── index-[hash].css
+│   └── ...
+├── vite.svg
+└── backend/
+    ├── dist/
+    │   ├── server.js      # Забандленный backend код со всеми зависимостями (~2-3 MB)
+    │   └── server.js.map  # Source map для отладки
+    └── .env               # Конфигурация
 ```
 
 **Преимущества этого подхода:**
@@ -456,8 +463,8 @@ journalctl -u sbp-backend -n 50
 
 ```bash
 # Проверить файлы собраны
-ls -la /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist/
-# Должны быть: index.html, assets/, и др.
+ls -la /var/www/alexanderlapygin.com/html/showcase/payments/sbp/
+# Должны быть: index.html, assets/, vite.svg, backend/
 
 # Проверить Nginx
 nginx -t
@@ -542,9 +549,10 @@ npm install
 npm run build
 cd ..
 
-# Загрузить обновленные файлы
-scp -r frontend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist-new
-scp -r backend/dist/ root@your-server:/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist-new
+# Загрузить обновленные файлы во временные директории
+mkdir -p /tmp/sbp-update-frontend /tmp/sbp-update-backend
+scp -r frontend/dist/* root@your-server:/tmp/sbp-update-frontend/
+scp -r backend/dist root@your-server:/tmp/sbp-update-backend/
 ```
 
 **На сервере:**
@@ -555,13 +563,20 @@ systemctl stop sbp-backend
 # или
 pm2 stop sbp-backend
 
-# Заменить frontend
-rm -rf /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist
-mv /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist-new /var/www/alexanderlapygin.com/html/showcase/payments/sbp/frontend/dist
+# Backup текущей версии (опционально)
+cp -r /var/www/alexanderlapygin.com/html/showcase/payments/sbp /var/www/alexanderlapygin.com/html/showcase/payments/sbp-backup-$(date +%Y%m%d-%H%M%S)
+
+# Заменить frontend (удалить старые файлы кроме backend/)
+cd /var/www/alexanderlapygin.com/html/showcase/payments/sbp/
+find . -maxdepth 1 ! -name 'backend' ! -name '.' -exec rm -rf {} +
+mv /tmp/sbp-update-frontend/* .
 
 # Заменить backend
 rm -rf /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist
-mv /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist-new /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/dist
+mv /tmp/sbp-update-backend/dist /var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend/
+
+# Очистка временных файлов
+rm -rf /tmp/sbp-update-frontend /tmp/sbp-update-backend
 
 # Настроить права доступа
 chown -R www-data:www-data /var/www/alexanderlapygin.com/html/showcase/payments/sbp
