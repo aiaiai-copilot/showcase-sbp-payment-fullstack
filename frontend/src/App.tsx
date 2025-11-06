@@ -3,6 +3,7 @@ import { PaymentForm } from '@/components/features/PaymentForm';
 import { QRCodeDisplay } from '@/components/features/QRCodeDisplay';
 import { PaymentStatus } from '@/components/features/PaymentStatus';
 import type { CreatePaymentResponse } from '@/lib/api';
+import sbpLogo from '@/assets/images/sbp-logo.svg';
 
 type PaymentFlowState = 'form' | 'qr' | 'status';
 
@@ -39,9 +40,16 @@ function App() {
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-black">
-            SBP Payment Demo
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <img
+              src={sbpLogo}
+              alt="СБП"
+              className="h-14 md:h-16"
+            />
+            <h1 className="text-4xl md:text-5xl font-bold text-black">
+              Payment Demo
+            </h1>
+          </div>
           <p className="text-neutral-600 text-lg">
             Secure SBP payment integration with QR code
           </p>
