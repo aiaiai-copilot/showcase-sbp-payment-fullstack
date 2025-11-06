@@ -1,6 +1,6 @@
 import type { operations } from '@/types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export type CreatePaymentRequest = operations['createPayment']['requestBody']['content']['application/json'];
 export type CreatePaymentResponse = operations['createPayment']['responses']['201']['content']['application/json'];
