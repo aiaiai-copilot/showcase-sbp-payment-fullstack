@@ -36,11 +36,14 @@ fastify.get('/', async () => {
   };
 });
 
-// Register payment routes
-await paymentRoutes(fastify, storage, yookassaService);
+// Register routes with /api prefix to match OpenAPI spec
+await fastify.register(async (app) => {
+  await paymentRoutes(app, storage, yookassaService);
+}, { prefix: '/api' });
 
-// Register webhook routes
-await webhookRoutes(fastify, storage);
+await fastify.register(async (app) => {
+  await webhookRoutes(app, storage);
+}, { prefix: '/api' });
 
 // Start server
 const start = async () => {

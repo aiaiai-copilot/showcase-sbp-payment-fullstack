@@ -94,9 +94,14 @@ describe('Contract Tests - Frontend-Backend API', () => {
     storage = new PaymentStorage();
     const yookassaService = new YooKassaService();
 
-    // Register routes
-    await paymentRoutes(app, storage, yookassaService);
-    await webhookRoutes(app, storage);
+    // Register routes with /api prefix to match OpenAPI spec
+    await app.register(async (instance) => {
+      await paymentRoutes(instance, storage, yookassaService);
+    }, { prefix: '/api' });
+
+    await app.register(async (instance) => {
+      await webhookRoutes(instance, storage);
+    }, { prefix: '/api' });
 
     await app.ready();
   });
