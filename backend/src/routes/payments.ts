@@ -43,10 +43,15 @@ export async function paymentRoutes(
         });
       }
 
+      // Extract origin from request headers for return_url
+      const origin = request.headers.origin || request.headers.referer?.split('/').slice(0, 3).join('/');
+      const returnUrl = origin ? `${origin}/showcase/payments/sbp/` : undefined;
+
       // Create payment in YooKassa
       const yookassaPayment = await yookassaService.createPayment(
         amount,
-        description
+        description,
+        returnUrl
       );
 
       // Generate internal payment ID
