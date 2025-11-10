@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
 import { networkInterfaces } from 'os';
+import { writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 /**
  * Mobile Development Helper
  * Displays connection information for testing on mobile devices
  */
 
-const PORT = 5173;
+const FRONTEND_PORT = 5173;
+const BACKEND_PORT = 3000;
 const BASE_PATH = '/showcase/payments/sbp/';
 
 // Get local IP address
@@ -29,22 +33,37 @@ function getLocalIP() {
 }
 
 const localIP = getLocalIP();
-const url = `http://${localIP}:${PORT}${BASE_PATH}`;
+const frontendUrl = `http://${localIP}:${FRONTEND_PORT}${BASE_PATH}`;
+const backendUrl = `http://${localIP}:${BACKEND_PORT}`;
+
+// Create .env.mobile for frontend with backend URL
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..');
+const frontendEnvPath = join(projectRoot, 'frontend', '.env.mobile');
+
+const envContent = `# Auto-generated for mobile testing - DO NOT COMMIT
+VITE_API_URL=${backendUrl}
+`;
+
+writeFileSync(frontendEnvPath, envContent);
 
 console.log('\n' + '='.repeat(60));
 console.log('📱  MOBILE TESTING MODE');
 console.log('='.repeat(60));
-console.log('\n🌐  Access URLs:');
-console.log(`   Local:    http://localhost:${PORT}${BASE_PATH}`);
-console.log(`   Network:  ${url}`);
-console.log('\n📋  Instructions:');
+console.log('\n🌐  Network Information:');
+console.log(`   Your IP:  ${localIP}`);
+console.log(`   Backend:  ${backendUrl}`);
+console.log(`   Frontend: ${frontendUrl}`);
+console.log('\n📋  Open on your mobile device:');
+console.log(`\n   👉  ${frontendUrl}\n`);
+console.log('📝  Instructions:');
 console.log('   1. Make sure your phone is on the same Wi-Fi network');
-console.log('   2. Open this URL on your mobile device:');
-console.log(`\n      ${url}\n`);
+console.log('   2. Copy the URL above to your mobile browser');
 console.log('   3. Test the mobile SBP payment flow!');
-console.log('\n💡  Tips:');
-console.log('   - Backend CORS is open to all origins in this mode');
-console.log('   - Frontend is accessible from local network');
-console.log('   - Perfect for testing mobile detection and bank app redirect');
+console.log('\n💡  Configuration:');
+console.log('   ✓ Backend CORS: Open to all origins');
+console.log('   ✓ Frontend: Network accessible');
+console.log('   ✓ API Proxy: Configured for mobile access');
 console.log('\n' + '='.repeat(60) + '\n');
 console.log('Starting servers...\n');
