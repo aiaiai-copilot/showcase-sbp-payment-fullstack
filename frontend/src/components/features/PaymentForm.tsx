@@ -15,6 +15,7 @@ const paymentFormSchema = z.object({
   description: z
     .string()
     .max(128, 'Description must not exceed 128 characters')
+    .transform((val) => val.trim() || undefined)
     .optional(),
 });
 
@@ -40,6 +41,7 @@ const paymentSchema = z.object({
   description: z
     .string()
     .max(128, 'Description must not exceed 128 characters')
+    .transform((val) => val?.trim() || undefined)
     .optional(),
 });
 
