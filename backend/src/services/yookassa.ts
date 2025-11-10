@@ -63,7 +63,8 @@ export class YooKassaService {
    */
   async createPayment(
     amount: number,
-    description?: string
+    description?: string,
+    returnUrl?: string
   ): Promise<YooKassaPaymentResponse> {
     const payload: CreateYooKassaPaymentRequest = {
       amount: {
@@ -72,7 +73,7 @@ export class YooKassaService {
       },
       confirmation: {
         type: 'redirect',
-        return_url: config.frontendUrl,
+        return_url: returnUrl || config.frontendUrl,
       },
       description: description || 'Payment via demo app',
       capture: true,

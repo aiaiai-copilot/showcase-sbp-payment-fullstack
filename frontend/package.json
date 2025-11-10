@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run generate:types && vite",
+    "dev:mobile": "npm run generate:types && vite --host --mode mobile",
     "build": "npm run generate:types && tsc && vite build",
     "preview": "vite preview",
     "test": "vitest --run",

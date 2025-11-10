@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run generate:types && tsx watch src/server.ts",
+    "dev:mobile": "cross-env FRONTEND_URL='*' npm run dev",
     "build": "npm run generate:types && node build.js",
     "start": "node dist/server.js",
     "test": "vitest --run",
@@ -15,22 +16,28 @@
     "generate:types:frontend": "openapi-typescript ../specs/frontend-backend-api.yaml -o src/types/api.ts",
     "generate:types:webhook": "openapi-typescript ../specs/yookassa-webhook-api.yaml -o src/types/webhook.ts"
   },
-  "keywords": ["yookassa", "payment", "fastify", "sbp"],
+  "keywords": [
+    "yookassa",
+    "payment",
+    "fastify",
+    "sbp"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "fastify": "^4.28.1",
     "@fastify/cors": "^9.0.1",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
-    "typescript": "^5.6.2",
-    "tsx": "^4.19.1",
-    "vitest": "^2.1.2",
     "@vitest/coverage-v8": "^2.1.2",
-    "openapi-typescript": "^7.4.1",
+    "cross-env": "^7.0.3",
+    "esbuild": "^0.23.0",
     "jest-openapi": "^0.14.2",
-    "esbuild": "^0.23.0"
+    "openapi-typescript": "^7.4.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
   }
 }

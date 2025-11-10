@@ -9,18 +9,43 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCreatePayment } from '@/hooks/useCreatePayment';
 import type { CreatePaymentResponse } from '@/lib/api';
 
-const paymentSchema = z.object({
-  amount: z
-    .number()
-    .min(1, 'Amount must be at least 1 ruble')
-    .max(100000, 'Amount must not exceed 100,000 rubles'),
+// Form input schema (before transformation)
+const paymentFormSchema = z.object({
+  amount: z.string().min(1, 'Amount is required'),
   description: z
     .string()
     .max(128, 'Description must not exceed 128 characters')
+    .transform((val) => val.trim() || undefined)
     .optional(),
 });
 
-type PaymentFormData = z.infer<typeof paymentSchema>;
+// Transformed schema for API (after transformation)
+const paymentSchema = z.object({
+  amount: z
+    .string()
+    .transform((val) => {
+      // Replace comma with dot for locales that use comma as decimal separator
+      const normalized = val.replace(',', '.');
+      const num = parseFloat(normalized);
+      if (isNaN(num)) {
+        throw new Error('Invalid number');
+      }
+      return num;
+    })
+    .pipe(
+      z
+        .number()
+        .min(1, 'Amount must be at least 1 ruble')
+        .max(100000, 'Amount must not exceed 100,000 rubles')
+    ),
+  description: z
+    .string()
+    .max(128, 'Description must not exceed 128 characters')
+    .transform((val) => val?.trim() || undefined)
+    .optional(),
+});
+
+type PaymentFormInput = z.infer<typeof paymentFormSchema>;
 
 interface PaymentFormProps {
   onSuccess: (payment: CreatePaymentResponse) => void;
@@ -35,19 +60,23 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     formState: { errors },
     reset,
     watch,
-  } = useForm<PaymentFormData>({
-    resolver: zodResolver(paymentSchema),
+  } = useForm<PaymentFormInput>({
+    resolver: zodResolver(paymentFormSchema),
     defaultValues: {
-      amount: 100,
+      amount: '100',
       description: '',
     },
   });
 
   const amount = watch('amount');
+  // Parse amount for display, handling both comma and dot
+  const displayAmount = amount ? parseFloat(String(amount).replace(',', '.')) : 100;
 
-  const onSubmit = async (data: PaymentFormData) => {
+  const onSubmit = async (formData: PaymentFormInput) => {
     try {
-      const payment = await createPayment.mutateAsync(data);
+      // Transform and validate with the full schema
+      const validatedData = await paymentSchema.parseAsync(formData);
+      const payment = await createPayment.mutateAsync(validatedData);
       onSuccess(payment);
       reset();
     } catch (error) {
@@ -72,15 +101,16 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             </Label>
             <Input
               id="amount"
-              type="number"
-              step="0.01"
-              placeholder="100.00"
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]+([.,][0-9]{1,2})?"
+              placeholder="100"
               className="h-12 text-lg border-2 focus:border-green-600 focus:ring-green-600"
               aria-label="Payment amount in rubles"
               aria-required="true"
               aria-invalid={!!errors.amount}
               aria-describedby={errors.amount ? 'amount-error' : undefined}
-              {...register('amount', { valueAsNumber: true })}
+              {...register('amount')}
             />
             {errors.amount && (
               <p id="amount-error" className="text-sm text-red-600 font-medium" role="alert">
@@ -125,7 +155,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             disabled={createPayment.isPending}
             aria-busy={createPayment.isPending}
           >
-            {createPayment.isPending ? 'Creating...' : `Pay ${amount || 100} ₽`}
+            {createPayment.isPending ? 'Creating...' : `Pay ${displayAmount} ₽`}
           </Button>
         </form>
       </CardContent>
