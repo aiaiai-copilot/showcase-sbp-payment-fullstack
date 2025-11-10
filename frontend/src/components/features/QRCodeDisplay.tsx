@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { CreatePaymentResponse } from '@/lib/api';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface QRCodeDisplayProps {
   payment: CreatePaymentResponse;
@@ -10,26 +11,55 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ payment, onCancel, onProceedToStatus }: QRCodeDisplayProps) {
+  const isMobile = useIsMobile();
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
     payment.confirmation.confirmation_url
   )}`;
+
+  const handleOpenBankApp = () => {
+    window.location.href = payment.confirmation.confirmation_url;
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto border-t-4 border-t-green-600">
       <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl">SBP Payment Demo</CardTitle>
         <CardDescription className="text-base">
-          Use your banking app with SBP support to scan this QR code
+          {isMobile
+            ? 'Pay via your bank app'
+            : 'Use your banking app with SBP support to scan this QR code'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex justify-center p-4 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-xl">
-          <img
-            src={qrCodeUrl}
-            alt="Payment QR Code"
-            className="w-64 h-64 border-4 border-white shadow-lg rounded-lg"
-          />
-        </div>
+        {isMobile ? (
+          // Mobile: Show button to open bank app
+          <div className="flex flex-col items-center gap-4 p-6">
+            <Button
+              onClick={handleOpenBankApp}
+              className="w-full h-14 bg-green-600 hover:bg-green-700 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              aria-label="Open SBP bank app for payment"
+            >
+              Open SBP Bank App
+            </Button>
+            <p className="text-sm text-neutral-600 text-center">
+              Click the button to complete payment in your banking app
+            </p>
+          </div>
+        ) : (
+          // Desktop: Show QR code
+          <div className="space-y-4">
+            <div className="flex justify-center p-4 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-xl">
+              <img
+                src={qrCodeUrl}
+                alt="Payment QR Code"
+                className="w-64 h-64 border-4 border-white shadow-lg rounded-lg"
+              />
+            </div>
+            <p className="text-sm text-neutral-600 text-center">
+              Scan QR code with your phone camera
+            </p>
+          </div>
+        )}
 
         <Alert className="border-2 border-green-200 bg-green-50">
           <AlertTitle className="text-green-900 font-semibold">Payment Details</AlertTitle>
