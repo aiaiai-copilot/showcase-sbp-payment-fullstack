@@ -4,6 +4,8 @@
 **Status:** Configuration Complete ✅
 **Next Step:** Start development in NEW SESSION
 
+**IMPORTANT:** The local `/home/user/living-tags-poc/` has the LATEST version with improved hooks. Use this version for the new session. The backup branch is for recovery only.
+
 ---
 
 ## What Was Accomplished
@@ -32,10 +34,11 @@ A complete Claude Code configuration system was created for the living-tags-poc 
 
 5. **Monitoring System** (`.claude/hooks/`)
    - `logger.sh` - Core logging utility
-   - `pre-tool-use.sh` - Logs tool usage, detects violations
+   - `pre-tool-use.sh` - Logs tool usage, detects violations (improved JSON parsing for subagent detection)
    - `post-tool-use.sh` - Logs results and completion
    - `test-monitoring.sh` - Verification script (ALL TESTS PASSED ✅)
    - Logs to: `.claude/logs/tool-usage.log`
+   - **Status:** Fully tested and operational ✅
 
 ---
 
@@ -48,9 +51,11 @@ A complete Claude Code configuration system was created for the living-tags-poc 
 
 **Status:**
 - Complete configuration exists locally
-- Committed: `351e05b`
-- NOT pushed (git authentication issue)
-- Ready to use immediately
+- Committed: `351e05b` (configuration) + uncommitted improvements
+- Includes improved `pre-tool-use.sh` with better subagent detection
+- Monitoring system fully tested - all tests passed ✅
+- NOT pushed to living-tags-poc (git authentication issue)
+- Ready to use immediately in new session
 
 ### Option 2: Backup Branch (showcase-sbp-payment-fullstack)
 ```
@@ -58,10 +63,11 @@ Branch: claude/living-tags-poc-config-011CV2RzoXmzQd84psMXH7DX
 ```
 
 **Status:**
-- Pushed successfully
+- Pushed successfully (commits: 58a0005, df013ed)
 - Files available:
-  - `CLAUDE-living-tags-poc.md` (rename to CLAUDE.md)
-  - `.claude/` directory (complete)
+  - `CLAUDE-living-tags-poc.md` (rename to CLAUDE.md when transferring)
+  - `.claude/` directory (complete with improved hooks)
+  - `SESSION-HANDOFF.md` (this file - for reference)
 
 **Note:** Ignore showcase-sbp-payment-fullstack project - it's old, not relevant.
 
@@ -195,6 +201,13 @@ Query Context7: "What parameters does Anthropic messages.create accept?"
 1. Before you use any tool → `pre-tool-use.sh` logs it
 2. After tool completes → `post-tool-use.sh` logs result
 3. All logged to `.claude/logs/tool-usage.log`
+
+### Recent Improvements
+The `pre-tool-use.sh` hook was improved with better JSON parsing:
+- Now handles multiple JSON format variations
+- Detects subagent usage more reliably
+- Tries both quoted and unquoted parameter formats
+- All monitoring tests passed successfully ✅
 
 ### What Gets Logged
 - ✅ Tool usage (Read, Edit, Write, Bash, etc.)
